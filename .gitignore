@@ -16,3 +16,6 @@ frontend/.env.local
 !.vscode/extensions.json
 .DS_Store
 Thumbs.db
+
+# Local secrets
+backend/src/main/resources/application-local.yml

@@ -4,6 +4,10 @@ server:
 spring:
   application:
     name: ev-platform-backend
+  # Personal secrets (DB password, Gmail app password...) go in application-local.yml
+  # next to this file. It is git-ignored, so it never reaches GitHub.
+  config:
+    import: optional:classpath:application-local.yml
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/ev_platform}
     username: ${DB_USERNAME:postgres}

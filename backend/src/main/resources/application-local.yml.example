@@ -1,0 +1,14 @@
+# Copy this file to application-local.yml (same folder) and fill in your values.
+# application-local.yml is in .gitignore — never commit real passwords.
+
+spring:
+  datasource:
+    password: your_postgres_password
+  mail:
+    username: yourname@gmail.com
+    password: your16charapppassword   # Gmail App Password, no spaces
+
+app:
+  mail:
+    enabled: true                     # true = send real emails instead of printing codes
+    from: yourname@gmail.com

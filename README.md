@@ -89,8 +89,9 @@ Ya VS Code mein: **Spring Boot Dashboard** (left sidebar) → `ev-platform-backe
 > ======== EMAIL (mail disabled, printed instead) ========
 > Your verification code is: 405154
 > ```
-> Real email ke liye Gmail App Password use karo:
-> `MAIL_ENABLED=true`, `MAIL_USERNAME=you@gmail.com`, `MAIL_PASSWORD=<16-char app password>`.
+> Real email ke liye: `backend/src/main/resources/application-local.yml.example` ko copy karke
+> `application-local.yml` banao (usi folder mein) aur Gmail + App Password daalo, `app.mail.enabled: true`.
+> Ye file `.gitignore` mein hai — passwords GitHub pe nahi jayenge. **`application.yml` mein kabhi real password mat likho.**
 
 ### 3. Frontend (naya terminal)
 ```powershell
