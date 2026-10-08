@@ -1,0 +1,52 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: ev-platform-backend
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/ev_platform}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+
+app:
+  # Frontend origin allowed by CORS
+  frontend-url: ${FRONTEND_URL:http://localhost:5173}
+  jwt:
+    # Base64 encoded, at least 32 bytes. CHANGE in production.
+    secret: ${JWT_SECRET:ZGV2LW9ubHktand0LXNlY3JldC1jaGFuZ2UtbWUtaW4tcHJvZHVjdGlvbi0xMjM0NQ==}
+    access-token-minutes: 1440
+    mfa-token-minutes: 5
+  crypto:
+    # Base64 encoded 32-byte key used for AES-256-GCM (phone numbers). CHANGE in production.
+    aes-key: ${AES_KEY:MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=}
+  mail:
+    # false = codes are printed in the backend console instead of being emailed
+    enabled: ${MAIL_ENABLED:false}
+    from: ${MAIL_FROM:no-reply@evplatform.local}
+  google:
+    client-id: ${GOOGLE_CLIENT_ID:}
+  security:
+    max-failed-logins: 5
+    lock-minutes: 15
+    otp-minutes: 10
+  admin:
+    # Seeded on first start if no admin exists
+    email: ${ADMIN_EMAIL:admin@evplatform.local}
+    password: ${ADMIN_PASSWORD:Admin@12345}
+    name: Platform Admin

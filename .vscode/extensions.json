@@ -1,0 +1,8 @@
+{
+  "recommendations": [
+    "vmware.vscode-boot-dev-pack",
+    "vscjava.vscode-java-pack",
+    "bradlc.vscode-tailwindcss",
+    "dsznajder.es7-react-js-snippets"
+  ]
+}
