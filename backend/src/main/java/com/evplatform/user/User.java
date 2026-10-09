@@ -48,13 +48,8 @@ public class User {
 
     private boolean enabled = true;
 
-    /** TOTP two-step verification. */
+    /** Two-step verification: after the password, a 6-digit code is emailed. */
     private boolean mfaEnabled;
-
-    /** Base32 TOTP secret, stored AES-256 encrypted. */
-    @Convert(converter = EncryptedStringConverter.class)
-    @Column(length = 512)
-    private String mfaSecret;
 
     private int failedLoginAttempts;
 
@@ -108,9 +103,6 @@ public class User {
 
     public boolean isMfaEnabled() { return mfaEnabled; }
     public void setMfaEnabled(boolean mfaEnabled) { this.mfaEnabled = mfaEnabled; }
-
-    public String getMfaSecret() { return mfaSecret; }
-    public void setMfaSecret(String mfaSecret) { this.mfaSecret = mfaSecret; }
 
     public int getFailedLoginAttempts() { return failedLoginAttempts; }
     public void setFailedLoginAttempts(int failedLoginAttempts) { this.failedLoginAttempts = failedLoginAttempts; }

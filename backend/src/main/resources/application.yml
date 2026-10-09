@@ -35,7 +35,7 @@ app:
     # Base64 encoded, at least 32 bytes. CHANGE in production.
     secret: ${JWT_SECRET:ZGV2LW9ubHktand0LXNlY3JldC1jaGFuZ2UtbWUtaW4tcHJvZHVjdGlvbi0xMjM0NQ==}
     access-token-minutes: 1440
-    mfa-token-minutes: 5
+    mfa-token-minutes: 10
   crypto:
     # Base64 encoded 32-byte key used for AES-256-GCM (phone numbers). CHANGE in production.
     aes-key: ${AES_KEY:MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=}

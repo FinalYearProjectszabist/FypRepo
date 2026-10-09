@@ -24,8 +24,6 @@ public final class ProfileDtos {
             @Pattern(regexp = ValidationRules.PASSWORD, message = ValidationRules.PASSWORD_MSG)
             String newPassword) {}
 
-    public record MfaSetupResponse(String secret, String otpauthUrl) {}
-
     public record MfaCodeRequest(
             @NotBlank(message = "Code is required")
             @Pattern(regexp = ValidationRules.OTP, message = ValidationRules.OTP_MSG)

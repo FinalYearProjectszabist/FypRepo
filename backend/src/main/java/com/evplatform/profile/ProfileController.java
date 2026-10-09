@@ -3,7 +3,6 @@ package com.evplatform.profile;
 import com.evplatform.auth.dto.AuthDtos.MessageResponse;
 import com.evplatform.profile.dto.ProfileDtos.ChangePasswordRequest;
 import com.evplatform.profile.dto.ProfileDtos.MfaCodeRequest;
-import com.evplatform.profile.dto.ProfileDtos.MfaSetupResponse;
 import com.evplatform.profile.dto.ProfileDtos.UpdateProfileRequest;
 import com.evplatform.security.AuthUser;
 import com.evplatform.user.UserResponse;
@@ -44,18 +43,19 @@ public class ProfileController {
         return new MessageResponse("Password changed successfully");
     }
 
-    @PostMapping("/mfa/setup")
-    public MfaSetupResponse setupMfa(@AuthenticationPrincipal AuthUser me) {
-        return profileService.setupMfa(me.id());
+    @PostMapping("/mfa/send-code")
+    public MessageResponse sendMfaCode(@AuthenticationPrincipal AuthUser me) {
+        profileService.sendMfaSettingsCode(me.id());
+        return new MessageResponse("We sent a 6-digit code to your email.");
     }
 
     @PostMapping("/mfa/enable")
     public UserResponse enableMfa(@AuthenticationPrincipal AuthUser me, @Valid @RequestBody MfaCodeRequest req) {
-        return profileService.enableMfa(me.id(), req.code());
+        return profileService.setMfaEnabled(me.id(), true, req.code());
     }
 
     @PostMapping("/mfa/disable")
     public UserResponse disableMfa(@AuthenticationPrincipal AuthUser me, @Valid @RequestBody MfaCodeRequest req) {
-        return profileService.disableMfa(me.id(), req.code());
+        return profileService.setMfaEnabled(me.id(), false, req.code());
     }
 }

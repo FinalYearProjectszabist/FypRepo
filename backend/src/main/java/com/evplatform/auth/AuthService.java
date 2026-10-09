@@ -4,6 +4,7 @@ import com.evplatform.auth.dto.AuthDtos.AuthResponse;
 import com.evplatform.auth.dto.AuthDtos.GoogleLoginRequest;
 import com.evplatform.auth.dto.AuthDtos.LoginRequest;
 import com.evplatform.auth.dto.AuthDtos.MfaLoginRequest;
+import com.evplatform.auth.dto.AuthDtos.MfaResendRequest;
 import com.evplatform.auth.dto.AuthDtos.ResetPasswordRequest;
 import com.evplatform.auth.dto.AuthDtos.SignupRequest;
 import com.evplatform.auth.dto.AuthDtos.VerifyEmailRequest;
@@ -11,7 +12,6 @@ import com.evplatform.common.ApiException;
 import com.evplatform.config.AppProperties;
 import com.evplatform.mail.MailService;
 import com.evplatform.security.JwtService;
-import com.evplatform.security.TotpService;
 import com.evplatform.user.AuthProvider;
 import com.evplatform.user.Role;
 import com.evplatform.user.User;
@@ -33,19 +33,17 @@ public class AuthService {
     private final UserRepository users;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
-    private final TotpService totpService;
     private final VerificationCodeService codes;
     private final MailService mailService;
     private final GoogleTokenVerifier googleVerifier;
     private final AppProperties props;
 
     public AuthService(UserRepository users, PasswordEncoder passwordEncoder, JwtService jwtService,
-                       TotpService totpService, VerificationCodeService codes, MailService mailService,
+                       VerificationCodeService codes, MailService mailService,
                        GoogleTokenVerifier googleVerifier, AppProperties props) {
         this.users = users;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
-        this.totpService = totpService;
         this.codes = codes;
         this.mailService = mailService;
         this.googleVerifier = googleVerifier;
@@ -118,26 +116,24 @@ public class AuthService {
             throw new ApiException(HttpStatus.FORBIDDEN, "EMAIL_NOT_VERIFIED", "Please verify your email before signing in.");
         }
         if (user.isMfaEnabled()) {
-            return AuthResponse.mfa(jwtService.createMfaToken(user));
+            return startEmailMfa(user);
         }
         return issueTokens(user);
     }
 
-    /** Second step of Two-Way Verification: authenticator app code. */
+    /** Second step of Two-Way Verification: the 6-digit code emailed after the password step. */
     public AuthResponse loginWithMfa(MfaLoginRequest req) {
-        Long userId = jwtService.parse(req.mfaToken(), JwtService.TYPE_MFA)
-                .orElseThrow(() -> ApiException.unauthorized("Verification session expired. Please sign in again."));
-        User user = users.findById(userId)
-                .orElseThrow(() -> ApiException.unauthorized("Verification session expired. Please sign in again."));
+        User user = mfaUser(req.mfaToken());
         if (user.isLocked()) {
-            throw new ApiException(HttpStatus.LOCKED, "Too many failed attempts. Try again later.");
+            throw new ApiException(HttpStatus.LOCKED, "ACCOUNT_LOCKED", "Too many failed attempts. Try again later.");
         }
-        if (!totpService.verify(user.getMfaSecret(), req.code())) {
-            registerFailedLogin(user);
-            throw ApiException.unauthorized("Incorrect authenticator code");
-        }
+        codes.consume(user, VerificationCode.Purpose.LOGIN_2FA, req.code());
         user.setFailedLoginAttempts(0);
         return issueTokens(user);
+    }
+
+    public void resendMfaCode(MfaResendRequest req) {
+        sendLoginCode(mfaUser(req.mfaToken()));
     }
 
     // ---------- Social Media Sign-in (Google) ----------
@@ -163,7 +159,7 @@ public class AuthService {
         // Google already verified the email address.
         user.setEmailVerified(true);
         if (user.isMfaEnabled()) {
-            return AuthResponse.mfa(jwtService.createMfaToken(user));
+            return startEmailMfa(user);
         }
         return issueTokens(user);
     }
@@ -199,6 +195,30 @@ public class AuthService {
     private AuthResponse issueTokens(User user) {
         return AuthResponse.success(jwtService.createAccessToken(user), jwtService.accessTokenSeconds(),
                 UserResponse.from(user));
+    }
+
+    private AuthResponse startEmailMfa(User user) {
+        sendLoginCode(user);
+        return AuthResponse.mfa(jwtService.createMfaToken(user), maskEmail(user.getEmail()));
+    }
+
+    private void sendLoginCode(User user) {
+        String code = codes.issue(user, VerificationCode.Purpose.LOGIN_2FA);
+        mailService.sendLoginCode(user.getEmail(), user.getFullName(), code, codes.ttlMinutes());
+    }
+
+    private User mfaUser(String mfaToken) {
+        return jwtService.parse(mfaToken, JwtService.TYPE_MFA)
+                .flatMap(users::findById)
+                .orElseThrow(() -> ApiException.unauthorized("Verification session expired. Please sign in again."));
+    }
+
+    /** huzafa@gmail.com -> hu****@gmail.com */
+    static String maskEmail(String email) {
+        int at = email.indexOf('@');
+        String name = email.substring(0, at);
+        String visible = name.length() <= 2 ? name.substring(0, 1) : name.substring(0, 2);
+        return visible + "****" + email.substring(at);
     }
 
     private void registerFailedLogin(User user) {

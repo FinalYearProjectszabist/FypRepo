@@ -8,7 +8,7 @@ export default function useAuthResult() {
 
   return (auth, from) => {
     if (auth.mfaRequired) {
-      navigate('/login/verify', { state: { mfaToken: auth.mfaToken, from } });
+      navigate('/login/verify', { state: { mfaToken: auth.mfaToken, maskedEmail: auth.maskedEmail, from } });
       return;
     }
     completeLogin(auth);

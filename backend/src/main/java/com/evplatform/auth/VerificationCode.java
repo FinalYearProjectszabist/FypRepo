@@ -14,12 +14,12 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.Instant;
 
-/** One-time 6-digit code sent by email (email verification / password reset). Only a SHA-256 hash is stored. */
+/** One-time 6-digit code sent by email (verification, password reset, 2-step login). Only a SHA-256 hash is stored. */
 @Entity
 @Table(name = "verification_codes")
 public class VerificationCode {
 
-    public enum Purpose { EMAIL_VERIFICATION, PASSWORD_RESET }
+    public enum Purpose { EMAIL_VERIFICATION, PASSWORD_RESET, LOGIN_2FA, MFA_SETTINGS }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

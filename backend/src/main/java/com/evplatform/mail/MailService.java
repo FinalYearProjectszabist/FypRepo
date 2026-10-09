@@ -56,6 +56,19 @@ public class MailService {
                         + "\n\nIt expires in " + minutes + " minutes.\n\n— EV Charging Platform");
     }
 
+    public void sendLoginCode(String to, String name, String code, long minutes) {
+        send(to, "Your EV Platform sign-in code",
+                "Hi " + name + ",\n\nYour sign-in verification code is: " + code
+                        + "\n\nIt expires in " + minutes + " minutes. If you did not try to sign in, change your"
+                        + " password immediately.\n\n— EV Charging Platform");
+    }
+
+    public void sendMfaSettingsCode(String to, String name, String code, long minutes) {
+        send(to, "Confirm two-step verification change",
+                "Hi " + name + ",\n\nUse this code to change your two-step verification setting: " + code
+                        + "\n\nIt expires in " + minutes + " minutes.\n\n— EV Charging Platform");
+    }
+
     public void sendPasswordResetCode(String to, String name, String code, long minutes) {
         send(to, "Reset your EV Platform password",
                 "Hi " + name + ",\n\nYour password reset code is: " + code

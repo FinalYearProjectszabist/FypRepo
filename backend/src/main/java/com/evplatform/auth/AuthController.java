@@ -6,6 +6,7 @@ import com.evplatform.auth.dto.AuthDtos.GoogleLoginRequest;
 import com.evplatform.auth.dto.AuthDtos.LoginRequest;
 import com.evplatform.auth.dto.AuthDtos.MessageResponse;
 import com.evplatform.auth.dto.AuthDtos.MfaLoginRequest;
+import com.evplatform.auth.dto.AuthDtos.MfaResendRequest;
 import com.evplatform.auth.dto.AuthDtos.ResetPasswordRequest;
 import com.evplatform.auth.dto.AuthDtos.SignupRequest;
 import com.evplatform.auth.dto.AuthDtos.VerifyEmailRequest;
@@ -58,6 +59,12 @@ public class AuthController {
     @PostMapping("/login/mfa")
     public AuthResponse loginMfa(@Valid @RequestBody MfaLoginRequest req) {
         return authService.loginWithMfa(req);
+    }
+
+    @PostMapping("/login/mfa/resend")
+    public MessageResponse resendMfa(@Valid @RequestBody MfaResendRequest req) {
+        authService.resendMfaCode(req);
+        return new MessageResponse("A new code has been sent to your email.");
     }
 
     @PostMapping("/google")

@@ -3,9 +3,10 @@ package com.evplatform.profile;
 import com.evplatform.auth.AuthService;
 import com.evplatform.common.ApiException;
 import com.evplatform.profile.dto.ProfileDtos.ChangePasswordRequest;
-import com.evplatform.profile.dto.ProfileDtos.MfaSetupResponse;
 import com.evplatform.profile.dto.ProfileDtos.UpdateProfileRequest;
-import com.evplatform.security.TotpService;
+import com.evplatform.auth.VerificationCode;
+import com.evplatform.auth.VerificationCodeService;
+import com.evplatform.mail.MailService;
 import com.evplatform.user.User;
 import com.evplatform.user.UserRepository;
 import com.evplatform.user.UserResponse;
@@ -19,12 +20,15 @@ public class ProfileService {
 
     private final UserRepository users;
     private final PasswordEncoder passwordEncoder;
-    private final TotpService totpService;
+    private final VerificationCodeService codes;
+    private final MailService mailService;
 
-    public ProfileService(UserRepository users, PasswordEncoder passwordEncoder, TotpService totpService) {
+    public ProfileService(UserRepository users, PasswordEncoder passwordEncoder, VerificationCodeService codes,
+                          MailService mailService) {
         this.users = users;
         this.passwordEncoder = passwordEncoder;
-        this.totpService = totpService;
+        this.codes = codes;
+        this.mailService = mailService;
     }
 
     @Transactional(readOnly = true)
@@ -53,40 +57,22 @@ public class ProfileService {
         user.setPasswordHash(passwordEncoder.encode(req.newPassword()));
     }
 
-    /** Step 1 of enabling 2-step verification: generate a secret to scan into an authenticator app. */
-    public MfaSetupResponse setupMfa(Long userId) {
+    /** Emails a code that confirms turning two-step verification on or off. */
+    public void sendMfaSettingsCode(Long userId) {
         User user = load(userId);
-        if (user.isMfaEnabled()) {
-            throw ApiException.badRequest("Two-step verification is already enabled");
-        }
-        String secret = totpService.generateSecret();
-        user.setMfaSecret(secret);
-        return new MfaSetupResponse(secret, totpService.otpauthUrl(secret, user.getEmail()));
+        String code = codes.issue(user, VerificationCode.Purpose.MFA_SETTINGS);
+        mailService.sendMfaSettingsCode(user.getEmail(), user.getFullName(), code, codes.ttlMinutes());
     }
 
-    /** Step 2: confirm the user's app produces valid codes, then turn MFA on. */
-    public UserResponse enableMfa(Long userId, String code) {
+    // noRollbackFor: a wrong code must still count as a failed attempt.
+    @Transactional(noRollbackFor = ApiException.class)
+    public UserResponse setMfaEnabled(Long userId, boolean enabled, String code) {
         User user = load(userId);
-        if (user.getMfaSecret() == null) {
-            throw ApiException.badRequest("Start the setup first");
+        if (user.isMfaEnabled() == enabled) {
+            throw ApiException.badRequest("Two-step verification is already " + (enabled ? "enabled" : "disabled"));
         }
-        if (!totpService.verify(user.getMfaSecret(), code)) {
-            throw ApiException.badRequest("Incorrect code. Check your authenticator app and try again.");
-        }
-        user.setMfaEnabled(true);
-        return UserResponse.from(user);
-    }
-
-    public UserResponse disableMfa(Long userId, String code) {
-        User user = load(userId);
-        if (!user.isMfaEnabled()) {
-            throw ApiException.badRequest("Two-step verification is not enabled");
-        }
-        if (!totpService.verify(user.getMfaSecret(), code)) {
-            throw ApiException.badRequest("Incorrect code");
-        }
-        user.setMfaEnabled(false);
-        user.setMfaSecret(null);
+        codes.consume(user, VerificationCode.Purpose.MFA_SETTINGS, code);
+        user.setMfaEnabled(enabled);
         return UserResponse.from(user);
     }
 

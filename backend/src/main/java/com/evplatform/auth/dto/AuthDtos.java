@@ -50,6 +50,8 @@ public final class AuthDtos {
             @NotBlank(message = "Code is required")
             @Pattern(regexp = ValidationRules.OTP, message = ValidationRules.OTP_MSG) String code) {}
 
+    public record MfaResendRequest(@NotBlank(message = "MFA session is missing") String mfaToken) {}
+
     public record EmailRequest(
             @NotBlank(message = "Email is required") @Email(message = "Enter a valid email address") String email) {}
 
@@ -67,21 +69,22 @@ public final class AuthDtos {
 
     /**
      * Login result. Either accessToken+user is set, or mfaRequired=true with an mfaToken
-     * that must be sent to /api/auth/login/mfa together with the authenticator code.
+     * that must be sent to /api/auth/login/mfa together with the code emailed to maskedEmail.
      */
     public record AuthResponse(
             String accessToken,
             long expiresIn,
             UserResponse user,
             boolean mfaRequired,
-            String mfaToken) {
+            String mfaToken,
+            String maskedEmail) {
 
         public static AuthResponse success(String token, long expiresIn, UserResponse user) {
-            return new AuthResponse(token, expiresIn, user, false, null);
+            return new AuthResponse(token, expiresIn, user, false, null, null);
         }
 
-        public static AuthResponse mfa(String mfaToken) {
-            return new AuthResponse(null, 0, null, true, mfaToken);
+        public static AuthResponse mfa(String mfaToken, String maskedEmail) {
+            return new AuthResponse(null, 0, null, true, mfaToken, maskedEmail);
         }
     }
 

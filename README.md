@@ -3,7 +3,7 @@
 | Part | Tech |
 |------|------|
 | Frontend | React (Vite), Tailwind CSS, Framer Motion, Axios |
-| Backend | Java 21, Spring Boot 3.5, Spring Security, Spring Data JPA, JWT, BCrypt, TOTP |
+| Backend | Java 21, Spring Boot 3.5, Spring Security, Spring Data JPA, JWT, BCrypt, JavaMail |
 | Database | PostgreSQL |
 
 ```
@@ -21,7 +21,7 @@ FypRepo/
 | **Signup** (role-based: Driver / Station Owner) | `POST /api/auth/signup` · `SignupPage.jsx` |
 | **Signin** (+ 5 ghalat password = 15 min lock) | `POST /api/auth/login` · `LoginPage.jsx` |
 | **Recover Password** (email pe 6-digit code) | `/api/auth/forgot-password`, `/api/auth/reset-password` |
-| **Two Way Verification** — email verification code + TOTP authenticator app (Google/Microsoft Authenticator) | `/api/auth/verify-email`, `/api/profile/mfa/*`, `/api/auth/login/mfa` |
+| **Two Way Verification** — (1) signup pe email verification code (2) Security page se on karo to har login pe password ke baad email pe 6-digit code | `/api/auth/verify-email`, `/api/profile/mfa/*`, `/api/auth/login/mfa` |
 | **Social Media Sign-in** (Google) | `POST /api/auth/google` · `GoogleSignInButton.jsx` |
 | **Profile and Vehicle Management** | `/api/profile`, `/api/vehicles` · `ProfilePage.jsx`, `VehiclesPage.jsx` |
 | **Input Validation Rules** | Backend: `common/ValidationRules.java` · Frontend: `src/utils/validation.js` |
@@ -51,9 +51,9 @@ current battery %, registration number, primary vehicle. Max 5 vehicles per driv
 
 ### Security
 - Passwords → **BCrypt** (strength 12)
-- Login → **JWT** (24h); MFA step uses a separate 5-min token that can't access the API
-- Phone numbers + TOTP secrets → **AES-256-GCM** encrypted in PostgreSQL
-- Email/reset codes → sirf SHA-256 hash store hota hai
+- Login → **JWT** (24h); 2-step login uses a separate 10-min token that can't access the API
+- Phone numbers → **AES-256-GCM** encrypted in PostgreSQL
+- Saare email codes (verify / reset / 2-step) → sirf SHA-256 hash store hota hai, 10 min expiry, max 5 tries
 
 ---
 
@@ -149,15 +149,16 @@ Naya key banane ke liye (PowerShell):
 | POST | `/api/auth/signup` | public |
 | POST | `/api/auth/verify-email` | public |
 | POST | `/api/auth/resend-verification` | public |
-| POST | `/api/auth/login` → `{accessToken}` ya `{mfaRequired, mfaToken}` | public |
-| POST | `/api/auth/login/mfa` | public (mfaToken) |
+| POST | `/api/auth/login` → `{accessToken}` ya `{mfaRequired, mfaToken, maskedEmail}` (code email ho jata hai) | public |
+| POST | `/api/auth/login/mfa` | public (mfaToken + email code) |
+| POST | `/api/auth/login/mfa/resend` | public (mfaToken) |
 | POST | `/api/auth/google` | public |
 | POST | `/api/auth/forgot-password` | public |
 | POST | `/api/auth/reset-password` | public |
 | GET | `/api/auth/me` | any role |
 | GET / PUT | `/api/profile` | any role |
 | PUT | `/api/profile/password` | any role |
-| POST | `/api/profile/mfa/setup`, `/enable`, `/disable` | any role |
+| POST | `/api/profile/mfa/send-code`, `/enable`, `/disable` (email code se confirm) | any role |
 | GET / POST | `/api/vehicles` | DRIVER |
 | PUT / DELETE | `/api/vehicles/{id}` | DRIVER |
 | GET | `/api/admin/users` | ADMIN |

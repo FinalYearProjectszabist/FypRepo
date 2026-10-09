@@ -13,7 +13,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.evplatform.mail.MailService;
-import com.evplatform.security.TotpService;
 import com.evplatform.user.UserRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -36,7 +35,6 @@ class AuthFlowIntegrationTest {
 
     @Autowired MockMvc mvc;
     @Autowired ObjectMapper mapper;
-    @Autowired TotpService totp;
     @Autowired UserRepository users;
     @Autowired JdbcTemplate jdbc;
     @MockitoBean MailService mail;
@@ -119,26 +117,40 @@ class AuthFlowIntegrationTest {
         call(get("/api/admin/users").header("Authorization", "Bearer " + token), null)
                 .andExpect(status().isForbidden());
 
-        // Enable MFA
-        String secret = json(call(post("/api/profile/mfa/setup").header("Authorization", "Bearer " + token), null)
-                .andExpect(status().isOk())).get("secret").asText();
+        // Enable two-step verification (code by email)
+        call(post("/api/profile/mfa/send-code").header("Authorization", "Bearer " + token), null)
+                .andExpect(status().isOk());
+        ArgumentCaptor<String> settingsCode = ArgumentCaptor.forClass(String.class);
+        verify(mail).sendMfaSettingsCode(eq(email), anyString(), settingsCode.capture(), anyLong());
+        call(post("/api/profile/mfa/enable").header("Authorization", "Bearer " + token), "{\"code\":\"000000\"}")
+                .andExpect(status().isBadRequest());
         call(post("/api/profile/mfa/enable").header("Authorization", "Bearer " + token),
-                "{\"code\":\"%s\"}".formatted(totp.currentCode(secret)))
+                "{\"code\":\"%s\"}".formatted(settingsCode.getValue()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.mfaEnabled").value(true));
 
-        // Login now needs a second step
+        // Login now needs a second step: a code emailed to the user
         JsonNode first = json(call(post("/api/auth/login"), login(email, PASSWORD)).andExpect(status().isOk()));
         assertThat(first.get("mfaRequired").asBoolean()).isTrue();
         assertThat(first.get("accessToken").isNull()).isTrue();
+        assertThat(first.get("maskedEmail").asText()).isEqualTo("dr****@test.com");
         String mfaToken = first.get("mfaToken").asText();
 
         // MFA token cannot be used as an access token
         call(get("/api/auth/me").header("Authorization", "Bearer " + mfaToken), null)
                 .andExpect(status().isUnauthorized());
 
+        call(post("/api/auth/login/mfa/resend"), "{\"mfaToken\":\"%s\"}".formatted(mfaToken))
+                .andExpect(status().isOk());
+        ArgumentCaptor<String> loginCode = ArgumentCaptor.forClass(String.class);
+        verify(mail, org.mockito.Mockito.times(2)).sendLoginCode(eq(email), anyString(), loginCode.capture(), anyLong());
+
+        // Only the latest code works
         call(post("/api/auth/login/mfa"), "{\"mfaToken\":\"%s\",\"code\":\"%s\"}"
-                .formatted(mfaToken, totp.currentCode(secret)))
+                .formatted(mfaToken, loginCode.getAllValues().get(0)))
+                .andExpect(status().isBadRequest());
+        call(post("/api/auth/login/mfa"), "{\"mfaToken\":\"%s\",\"code\":\"%s\"}"
+                .formatted(mfaToken, loginCode.getValue()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accessToken").isNotEmpty());
     }
