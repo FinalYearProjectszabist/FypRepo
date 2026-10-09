@@ -50,7 +50,7 @@ export default function ResetPasswordPage() {
     <AuthLayout
       title="Set a new password"
       subtitle="If an account exists for this email, a reset code is on its way."
-      footer={<Link to="/forgot-password" className="font-semibold text-brand-700 hover:underline">Send a new code</Link>}
+      footer={<Link to="/forgot-password" className="link">Send a new code</Link>}
     >
       <form onSubmit={onSubmit} className="space-y-4" noValidate>
         <Alert>{error}</Alert>

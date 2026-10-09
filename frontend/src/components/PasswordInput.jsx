@@ -23,7 +23,7 @@ export default function PasswordInput({ label, name, value, error, showStrength,
         <button
           type="button"
           onClick={() => setVisible((v) => !v)}
-          className="absolute inset-y-0 right-2 my-auto h-7 rounded px-2 text-xs font-medium text-slate-500 hover:bg-slate-100"
+          className="absolute inset-y-0 right-2 my-auto h-7 rounded px-2 text-xs font-medium text-slate-400 hover:bg-white/10"
         >
           {visible ? 'Hide' : 'Show'}
         </button>
@@ -32,13 +32,13 @@ export default function PasswordInput({ label, name, value, error, showStrength,
         <div className="mt-2">
           <div className="flex gap-1">
             {[0, 1, 2, 3].map((i) => (
-              <div key={i} className={`h-1 flex-1 rounded ${i < score ? COLORS[score] : 'bg-slate-200'}`} />
+              <div key={i} className={`h-1 flex-1 rounded ${i < score ? COLORS[score] : 'bg-white/10'}`} />
             ))}
           </div>
-          <p className="mt-1 text-xs text-slate-500">Strength: {LEVELS[score]}</p>
+          <p className="mt-1 text-xs text-slate-400">Strength: {LEVELS[score]}</p>
         </div>
       )}
-      {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
+      {error && <p className="mt-1 text-xs text-red-400">{error}</p>}
     </div>
   );
 }

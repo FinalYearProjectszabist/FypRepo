@@ -58,7 +58,7 @@ export default function LoginPage() {
     <AuthLayout
       title="Sign in"
       subtitle="Welcome back! Sign in to find and book chargers."
-      footer={<>New here? <Link to="/signup" className="font-semibold text-brand-700 hover:underline">Create an account</Link></>}
+      footer={<>New here? <Link to="/signup" className="link">Create an account</Link></>}
     >
       <div className="space-y-4">
         {params.get('expired') && <Alert type="info">Your session expired. Please sign in again.</Alert>}
@@ -79,7 +79,7 @@ export default function LoginPage() {
             value={values.password} onChange={onChange} onBlur={onBlur} error={errors.password}
           />
           <div className="flex justify-end">
-            <Link to="/forgot-password" className="text-sm font-medium text-brand-700 hover:underline">
+            <Link to="/forgot-password" className="text-sm link">
               Forgot password?
             </Link>
           </div>

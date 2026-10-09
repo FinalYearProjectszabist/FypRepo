@@ -55,11 +55,11 @@ export default function SecurityPage() {
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <h1 className="text-lg font-semibold">Two-step verification</h1>
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-slate-400">
             After your password, sign-in will also ask for a 6-digit code that we email to <b>{user.email}</b>.
           </p>
         </div>
-        <span className={`rounded-full px-3 py-1 text-xs font-semibold ${user.mfaEnabled ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+        <span className={`rounded-full px-3 py-1 text-xs font-semibold ${user.mfaEnabled ? 'bg-emerald-500/15 text-emerald-300 ring-1 ring-inset ring-emerald-400/20' : 'bg-amber-500/15 text-amber-300 ring-1 ring-inset ring-amber-400/20'}`}>
           {user.mfaEnabled ? 'Enabled' : 'Disabled'}
         </span>
       </div>

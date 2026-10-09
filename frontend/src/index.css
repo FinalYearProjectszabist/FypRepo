@@ -2,31 +2,66 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  html { color-scheme: dark; }
+  body { @apply min-h-screen bg-ink-950 font-sans text-slate-200; }
+  h1, h2, h3 { @apply font-display tracking-tight; }
+  ::selection { @apply bg-brand-500/30 text-white; }
+
+  /* Keep Chrome autofill from painting inputs white */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus {
+    -webkit-text-fill-color: #f1f5f9;
+    -webkit-box-shadow: 0 0 0 1000px #0f1a2b inset;
+    caret-color: #f1f5f9;
+    transition: background-color 9999s ease-out;
+  }
+  select option { background: #0f1a2b; color: #e2e8f0; }
+  input[type='checkbox'] { accent-color: #10b981; }
+  input[type='number']::-webkit-inner-spin-button { opacity: .4; }
+}
+
 @layer components {
   .input {
-    @apply w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none transition
-      focus:border-brand-500 focus:ring-2 focus:ring-brand-100;
-  }
-  .input-error {
-    @apply border-red-400 focus:border-red-500 focus:ring-red-100;
-  }
-  .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition
+    @apply w-full rounded-xl border border-white/10 bg-white/[0.04] px-3.5 py-2.5 text-sm text-slate-100
+      placeholder:text-slate-500 outline-none transition
+      hover:border-white/20
+      focus:border-brand-400/70 focus:bg-white/[0.06] focus:ring-4 focus:ring-brand-500/15
       disabled:cursor-not-allowed disabled:opacity-60;
   }
+  .input-error {
+    @apply border-red-400/60 focus:border-red-400 focus:ring-red-500/15;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition
+      focus-visible:outline-none focus-visible:ring-4 disabled:cursor-not-allowed disabled:opacity-60;
+  }
   .btn-primary {
-    @apply btn bg-brand-600 text-white hover:bg-brand-700;
+    @apply btn bg-gradient-to-r from-brand-500 to-cyan-500 text-ink-950 shadow-glow
+      hover:brightness-110 active:brightness-95 focus-visible:ring-brand-500/30;
   }
   .btn-secondary {
-    @apply btn border border-slate-300 bg-white text-slate-700 hover:bg-slate-100;
+    @apply btn border border-white/10 bg-white/5 text-slate-200 hover:border-white/20 hover:bg-white/10
+      focus-visible:ring-white/10;
   }
   .btn-danger {
-    @apply btn bg-red-600 text-white hover:bg-red-700;
+    @apply btn bg-gradient-to-r from-rose-500 to-red-500 text-white shadow-lg shadow-red-900/30
+      hover:brightness-110 focus-visible:ring-red-500/30;
   }
   .card {
-    @apply rounded-2xl border border-slate-200 bg-white p-6 shadow-sm;
+    @apply rounded-2xl border border-white/10 bg-ink-900/60 p-6 shadow-card backdrop-blur-xl;
   }
   .label {
-    @apply mb-1 block text-sm font-medium text-slate-700;
+    @apply mb-1.5 block text-sm font-medium text-slate-300;
+  }
+  .badge {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ring-inset;
+  }
+  .text-gradient {
+    @apply bg-gradient-to-r from-brand-300 via-cyan-300 to-sky-400 bg-clip-text text-transparent;
+  }
+  .link {
+    @apply font-semibold text-brand-300 transition hover:text-brand-200;
   }
 }

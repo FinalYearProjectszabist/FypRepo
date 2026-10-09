@@ -76,9 +76,9 @@ function VehicleForm({ initial, onSaved, onCancel }) {
       <h2 className="text-lg font-semibold">{initial?.id ? 'Edit vehicle' : 'Add a vehicle'}</h2>
       {!initial?.id && (
         <div className="flex flex-wrap gap-2">
-          <span className="text-xs text-slate-500">Quick fill:</span>
+          <span className="text-xs text-slate-400">Quick fill:</span>
           {PRESETS.map((p) => (
-            <button type="button" key={p.model} className="rounded-full border border-slate-200 px-2 py-0.5 text-xs hover:bg-slate-100"
+            <button type="button" key={p.model} className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-slate-300 transition hover:border-brand-400/40 hover:bg-brand-500/10 hover:text-brand-200"
               onClick={() => { setValues((v) => ({ ...v, ...p })); setErrors({}); }}>
               {p.make} {p.model}
             </button>
@@ -105,13 +105,13 @@ function VehicleForm({ initial, onSaved, onCancel }) {
         <div>
           <FormField label={`Current battery: ${values.currentBatteryPercent || 0}%`} name="currentBatteryPercent" error={errors.currentBatteryPercent}>
             <input id="currentBatteryPercent" name="currentBatteryPercent" type="range" min="0" max="100"
-              value={values.currentBatteryPercent} onChange={onChange} className="w-full accent-brand-600" />
+              value={values.currentBatteryPercent} onChange={onChange} className="w-full accent-brand-500" />
           </FormField>
         </div>
       </div>
       <label className="flex items-center gap-2 text-sm">
         <input type="checkbox" name="primaryVehicle" checked={values.primaryVehicle} onChange={onChange}
-          className="h-4 w-4 rounded border-slate-300" />
+          className="h-4 w-4 rounded border-white/15" />
         Use as my primary vehicle (used for compatibility & cost estimates)
       </label>
       <div className="flex gap-2">
@@ -123,10 +123,11 @@ function VehicleForm({ initial, onSaved, onCancel }) {
 }
 
 function BatteryBar({ percent }) {
-  const color = percent < 20 ? 'bg-red-500' : percent < 50 ? 'bg-amber-500' : 'bg-emerald-500';
+  const color = percent < 20 ? 'from-rose-500 to-red-400' : percent < 50 ? 'from-amber-500 to-yellow-300' : 'from-brand-500 to-cyan-400';
   return (
-    <div className="h-2 w-full rounded bg-slate-200">
-      <motion.div className={`h-2 rounded ${color}`} initial={{ width: 0 }} animate={{ width: `${percent}%` }} />
+    <div className="h-2 w-full overflow-hidden rounded-full bg-white/10">
+      <motion.div className={`h-2 rounded-full bg-gradient-to-r ${color} shadow-[0_0_12px_rgba(16,185,129,.6)]`}
+        initial={{ width: 0 }} animate={{ width: `${percent}%` }} transition={{ duration: 0.8, ease: 'easeOut' }} />
     </div>
   );
 }
@@ -159,8 +160,8 @@ export default function VehiclesPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">My vehicles</h1>
-          <p className="text-sm text-slate-500">Your connector type and battery size decide which chargers fit and what charging will cost.</p>
+          <h1 className="text-2xl font-bold text-white">My vehicles</h1>
+          <p className="text-sm text-slate-400">Your connector type and battery size decide which chargers fit and what charging will cost.</p>
         </div>
         {!editing && <button className="btn-primary" onClick={() => setEditing('new')}>+ Add vehicle</button>}
       </div>
@@ -179,36 +180,36 @@ export default function VehiclesPage() {
       </AnimatePresence>
 
       {vehicles === null ? (
-        <div className="flex justify-center py-10 text-brand-600"><Spinner className="h-6 w-6" /></div>
+        <div className="flex justify-center py-10 text-brand-400"><Spinner className="h-6 w-6" /></div>
       ) : vehicles.length === 0 && !editing ? (
-        <div className="card text-center text-slate-500">No vehicles yet. Add your EV to get started.</div>
+        <div className="card text-center text-slate-400">No vehicles yet. Add your EV to get started.</div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
           {vehicles.map((v) => (
-            <motion.div layout key={v.id} className="card space-y-3">
+            <motion.div layout key={v.id} whileHover={{ y: -3 }} className="card space-y-4 transition-colors hover:border-brand-400/30">
               <div className="flex items-start justify-between gap-2">
                 <div>
-                  <h3 className="font-semibold text-slate-900">{v.make} {v.model}</h3>
-                  <p className="text-xs text-slate-500">{v.year}{v.licensePlate && ` · ${v.licensePlate}`}</p>
+                  <h3 className="font-semibold text-white">{v.make} {v.model}</h3>
+                  <p className="text-xs text-slate-400">{v.year}{v.licensePlate && ` · ${v.licensePlate}`}</p>
                 </div>
                 {v.primaryVehicle && (
-                  <span className="rounded-full bg-brand-100 px-2 py-0.5 text-xs font-semibold text-brand-700">Primary</span>
+                  <span className="rounded-full bg-brand-500/15 px-2 py-0.5 text-xs font-semibold text-brand-300">Primary</span>
                 )}
               </div>
               <dl className="grid grid-cols-3 gap-2 text-sm">
-                <div><dt className="text-xs text-slate-500">Connector</dt><dd className="font-medium">{v.connectorType}</dd></div>
-                <div><dt className="text-xs text-slate-500">Battery</dt><dd className="font-medium">{v.batteryCapacityKwh} kWh</dd></div>
-                <div><dt className="text-xs text-slate-500">Range</dt><dd className="font-medium">{v.rangeKm} km</dd></div>
+                <div><dt className="text-xs text-slate-400">Connector</dt><dd className="font-medium">{v.connectorType}</dd></div>
+                <div><dt className="text-xs text-slate-400">Battery</dt><dd className="font-medium">{v.batteryCapacityKwh} kWh</dd></div>
+                <div><dt className="text-xs text-slate-400">Range</dt><dd className="font-medium">{v.rangeKm} km</dd></div>
               </dl>
               <div>
-                <div className="mb-1 flex justify-between text-xs text-slate-500">
+                <div className="mb-1 flex justify-between text-xs text-slate-400">
                   <span>{v.currentBatteryPercent}% charged</span><span>~{v.estimatedRangeLeftKm} km left</span>
                 </div>
                 <BatteryBar percent={v.currentBatteryPercent} />
               </div>
               <div className="flex gap-2">
                 <button className="btn-secondary" onClick={() => setEditing(v)}>Edit</button>
-                <button className="btn-secondary text-red-600" onClick={() => remove(v)}>Remove</button>
+                <button className="btn-secondary text-red-400" onClick={() => remove(v)}>Remove</button>
               </div>
             </motion.div>
           ))}

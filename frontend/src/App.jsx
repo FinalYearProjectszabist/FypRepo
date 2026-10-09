@@ -1,4 +1,5 @@
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import Background3D from './components/Background3D';
 import AppLayout from './components/AppLayout';
 import ProtectedRoute, { GuestRoute } from './components/ProtectedRoute';
 import { HOME_BY_ROLE, useAuth } from './context/AuthContext';
@@ -20,29 +21,37 @@ function Home() {
   return <Navigate to={user ? HOME_BY_ROLE[user.role] : '/login'} replace />;
 }
 
+const APP_PATHS = ['/dashboard', '/vehicles', '/admin', '/profile', '/security'];
+
 export default function App() {
+  const { pathname } = useLocation();
+  // Dim the 3D scene on content-heavy pages so forms and tables stay readable.
+  const dim = APP_PATHS.some((p) => pathname.startsWith(p));
   return (
-    <Routes>
-      <Route path="/" element={<Home />} />
+    <>
+      <Background3D dim={dim} />
+      <Routes>
+        <Route path="/" element={<Home />} />
 
-      {/* Authentication */}
-      <Route path="/login" element={<GuestRoute><LoginPage /></GuestRoute>} />
-      <Route path="/login/verify" element={<GuestRoute><MfaLoginPage /></GuestRoute>} />
-      <Route path="/signup" element={<GuestRoute><SignupPage /></GuestRoute>} />
-      <Route path="/verify-email" element={<VerifyEmailPage />} />
-      <Route path="/forgot-password" element={<GuestRoute><ForgotPasswordPage /></GuestRoute>} />
-      <Route path="/reset-password" element={<GuestRoute><ResetPasswordPage /></GuestRoute>} />
+        {/* Authentication */}
+        <Route path="/login" element={<GuestRoute><LoginPage /></GuestRoute>} />
+        <Route path="/login/verify" element={<GuestRoute><MfaLoginPage /></GuestRoute>} />
+        <Route path="/signup" element={<GuestRoute><SignupPage /></GuestRoute>} />
+        <Route path="/verify-email" element={<VerifyEmailPage />} />
+        <Route path="/forgot-password" element={<GuestRoute><ForgotPasswordPage /></GuestRoute>} />
+        <Route path="/reset-password" element={<GuestRoute><ResetPasswordPage /></GuestRoute>} />
 
-      {/* Signed-in area */}
-      <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
-        <Route path="/dashboard" element={<ProtectedRoute roles={['DRIVER', 'STATION_OWNER']}><DashboardPage /></ProtectedRoute>} />
-        <Route path="/vehicles" element={<ProtectedRoute roles={['DRIVER']}><VehiclesPage /></ProtectedRoute>} />
-        <Route path="/admin/users" element={<ProtectedRoute roles={['ADMIN']}><AdminUsersPage /></ProtectedRoute>} />
-        <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/security" element={<SecurityPage />} />
-      </Route>
+        {/* Signed-in area */}
+        <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
+          <Route path="/dashboard" element={<ProtectedRoute roles={['DRIVER', 'STATION_OWNER']}><DashboardPage /></ProtectedRoute>} />
+          <Route path="/vehicles" element={<ProtectedRoute roles={['DRIVER']}><VehiclesPage /></ProtectedRoute>} />
+          <Route path="/admin/users" element={<ProtectedRoute roles={['ADMIN']}><AdminUsersPage /></ProtectedRoute>} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/security" element={<SecurityPage />} />
+        </Route>
 
-      <Route path="*" element={<Home />} />
-    </Routes>
+        <Route path="*" element={<Home />} />
+      </Routes>
+    </>
   );
 }

@@ -34,7 +34,7 @@ export default function ForgotPasswordPage() {
     <AuthLayout
       title="Recover password"
       subtitle="Enter your account email and we'll send you a 6-digit reset code."
-      footer={<Link to="/login" className="font-semibold text-brand-700 hover:underline">Back to sign in</Link>}
+      footer={<Link to="/login" className="link">Back to sign in</Link>}
     >
       <form onSubmit={onSubmit} className="space-y-4" noValidate>
         <Alert>{error}</Alert>

@@ -11,6 +11,7 @@ export default function GoogleSignInButton({ onCredential, onError, text = 'cont
         onSuccess={(res) => onCredential(res.credential)}
         onError={() => onError?.('Google sign-in was cancelled or failed')}
         text={text}
+        theme="filled_black"
         shape="pill"
         width="320"
       />
@@ -21,8 +22,8 @@ export default function GoogleSignInButton({ onCredential, onError, text = 'cont
 export function OrDivider() {
   if (!GOOGLE_ENABLED) return null;
   return (
-    <div className="my-5 flex items-center gap-3 text-xs uppercase text-slate-400">
-      <div className="h-px flex-1 bg-slate-200" /> or <div className="h-px flex-1 bg-slate-200" />
+    <div className="my-6 flex items-center gap-3 text-[11px] font-medium uppercase tracking-widest text-slate-500">
+      <div className="h-px flex-1 bg-white/10" /> or <div className="h-px flex-1 bg-white/10" />
     </div>
   );
 }

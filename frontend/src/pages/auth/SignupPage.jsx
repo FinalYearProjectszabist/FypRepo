@@ -74,7 +74,7 @@ export default function SignupPage() {
     <AuthLayout
       title="Create your account"
       subtitle="Join Pakistan's connected EV charging network."
-      footer={<>Already have an account? <Link to="/login" className="font-semibold text-brand-700 hover:underline">Sign in</Link></>}
+      footer={<>Already have an account? <Link to="/login" className="link">Sign in</Link></>}
     >
       <form onSubmit={onSubmit} className="space-y-4" noValidate>
         <Alert>{error}</Alert>
@@ -89,16 +89,16 @@ export default function SignupPage() {
                 key={r.value}
                 onClick={() => setValues((v) => ({ ...v, role: r.value }))}
                 className={`rounded-xl border p-3 text-left transition ${
-                  values.role === r.value ? 'border-brand-600 bg-brand-50 ring-2 ring-brand-100' : 'border-slate-200 hover:border-slate-300'
+                  values.role === r.value ? 'border-brand-400/60 bg-brand-500/10 ring-2 ring-brand-400/30' : 'border-white/10 hover:border-white/20'
                 }`}
                 aria-pressed={values.role === r.value}
               >
                 <div className="text-sm font-semibold">{r.title}</div>
-                <div className="mt-0.5 text-xs text-slate-500">{r.desc}</div>
+                <div className="mt-0.5 text-xs text-slate-400">{r.desc}</div>
               </motion.button>
             ))}
           </div>
-          {errors.role && <p className="mt-1 text-xs text-red-600">{errors.role}</p>}
+          {errors.role && <p className="mt-1 text-xs text-red-400">{errors.role}</p>}
         </div>
 
         <GoogleSignInButton onCredential={onGoogle} onError={setError} text="signup_with" />
@@ -116,12 +116,12 @@ export default function SignupPage() {
           value={values.confirmPassword} onChange={onChange} onBlur={onBlur} error={errors.confirmPassword} />
 
         <div>
-          <label className="flex items-start gap-2 text-sm text-slate-600">
+          <label className="flex items-start gap-2 text-sm text-slate-300">
             <input type="checkbox" name="terms" checked={values.terms} onChange={onChange}
-              className="mt-0.5 h-4 w-4 rounded border-slate-300 text-brand-600" />
+              className="mt-0.5 h-4 w-4 rounded border-white/15 text-brand-400" />
             I agree to the Terms of Service and Privacy Policy
           </label>
-          {errors.terms && <p className="mt-1 text-xs text-red-600">{errors.terms}</p>}
+          {errors.terms && <p className="mt-1 text-xs text-red-400">{errors.terms}</p>}
         </div>
 
         <button type="submit" className="btn-primary w-full" disabled={busy}>

@@ -13,9 +13,9 @@ export default function FormField({ label, name, error, hint, as = 'input', chil
         />
       )}
       {error ? (
-        <p className="mt-1 text-xs text-red-600">{error}</p>
+        <p className="mt-1 text-xs text-red-400">{error}</p>
       ) : hint ? (
-        <p className="mt-1 text-xs text-slate-500">{hint}</p>
+        <p className="mt-1 text-xs text-slate-400">{hint}</p>
       ) : null}
     </div>
   );

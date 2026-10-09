@@ -49,7 +49,7 @@ export default function VerifyEmailPage() {
     <AuthLayout
       title="Verify your email"
       subtitle="Enter the 6-digit code we sent to your email address."
-      footer={<Link to="/login" className="font-semibold text-brand-700 hover:underline">Back to sign in</Link>}
+      footer={<Link to="/login" className="link">Back to sign in</Link>}
     >
       <form onSubmit={onSubmit} className="space-y-4" noValidate>
         <Alert type="info">{info}</Alert>
@@ -62,7 +62,7 @@ export default function VerifyEmailPage() {
         <button type="submit" className="btn-primary w-full" disabled={busy}>
           {busy && <Spinner />} Verify email
         </button>
-        <button type="button" onClick={resend} className="w-full text-sm font-medium text-brand-700 hover:underline">
+        <button type="button" onClick={resend} className="w-full text-sm link">
           Didn&apos;t get a code? Resend
         </button>
       </form>

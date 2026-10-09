@@ -77,7 +77,7 @@ export default function ProfilePage() {
       <form onSubmit={saveProfile} className="card space-y-4" noValidate>
         <div>
           <h2 className="text-lg font-semibold">Personal details</h2>
-          <p className="text-sm text-slate-500">{ROLE_LABEL[user.role]} · {user.email}
+          <p className="text-sm text-slate-400">{ROLE_LABEL[user.role]} · {user.email}
             {user.provider === 'GOOGLE' && ' · Google account'}
           </p>
         </div>
@@ -96,7 +96,7 @@ export default function ProfilePage() {
       <form onSubmit={savePassword} className="card space-y-4" noValidate>
         <div>
           <h2 className="text-lg font-semibold">{hasPassword ? 'Change password' : 'Set a password'}</h2>
-          {!hasPassword && <p className="text-sm text-slate-500">Optional — lets you sign in with email too.</p>}
+          {!hasPassword && <p className="text-sm text-slate-400">Optional — lets you sign in with email too.</p>}
         </div>
         <Alert type={msg.password?.type}>{msg.password?.text}</Alert>
         {hasPassword && (

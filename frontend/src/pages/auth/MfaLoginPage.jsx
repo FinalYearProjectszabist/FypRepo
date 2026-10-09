@@ -49,7 +49,7 @@ export default function MfaLoginPage() {
     <AuthLayout
       title="Two-step verification"
       subtitle={`We sent a 6-digit code to ${location.state?.maskedEmail || 'your email'}. Enter it to finish signing in.`}
-      footer={<Link to="/login" className="font-semibold text-brand-700 hover:underline">Use a different account</Link>}
+      footer={<Link to="/login" className="link">Use a different account</Link>}
     >
       <form onSubmit={onSubmit} className="space-y-4" noValidate>
         <Alert type="info">{info}</Alert>
@@ -61,7 +61,7 @@ export default function MfaLoginPage() {
         <button type="submit" className="btn-primary w-full" disabled={busy}>
           {busy && <Spinner />} Verify
         </button>
-        <button type="button" onClick={resend} className="w-full text-sm font-medium text-brand-700 hover:underline">
+        <button type="button" onClick={resend} className="w-full text-sm link">
           Didn&apos;t get a code? Resend
         </button>
       </form>

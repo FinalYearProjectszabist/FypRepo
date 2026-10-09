@@ -8,7 +8,7 @@ export default function ProtectedRoute({ roles, children }) {
   const location = useLocation();
 
   if (loading) {
-    return <div className="flex min-h-screen items-center justify-center text-brand-600"><Spinner className="h-8 w-8" /></div>;
+    return <div className="flex min-h-screen items-center justify-center text-brand-400"><Spinner className="h-8 w-8" /></div>;
   }
   if (!user) {
     return <Navigate to="/login" replace state={{ from: location.pathname }} />;
