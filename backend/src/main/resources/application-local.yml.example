@@ -12,3 +12,5 @@ app:
   mail:
     enabled: true                     # true = send real emails instead of printing codes
     from: yourname@gmail.com
+  google:
+    client-id: xxxxxxxx.apps.googleusercontent.com   # same as VITE_GOOGLE_CLIENT_ID in frontend/.env
