@@ -5,6 +5,7 @@ import { Logo } from './AuthLayout';
 
 const LINKS = [
   { to: '/dashboard', label: 'Dashboard', roles: ['DRIVER', 'STATION_OWNER'] },
+  { to: '/stations', label: 'Find Chargers', roles: ['DRIVER', 'STATION_OWNER', 'ADMIN'] },
   { to: '/vehicles', label: 'My Vehicles', roles: ['DRIVER'] },
   { to: '/admin/users', label: 'Users', roles: ['ADMIN'] },
   { to: '/profile', label: 'Profile', roles: ['DRIVER', 'STATION_OWNER', 'ADMIN'] },

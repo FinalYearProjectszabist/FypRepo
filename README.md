@@ -57,6 +57,51 @@ current battery %, registration number, primary vehicle. Max 5 vehicles per driv
 
 ---
 
+## Module 2 — Station Discovery ✅
+
+Page: **Find Chargers** (`/stations`) — har role ke liye nav mein.
+
+| Feature (proposal) | Kahan hai |
+|---|---|
+| **Location Based Search and Category** | "Near me" (browser GPS) ya city select + radius slider (2–100 km); category buttons: All / Public / Cafés & businesses / Home chargers; text search (naam, area, city) |
+| **Filters** | Connector (CCS2 / CHAdeMO / Type 2) — driver ki primary vehicle ka connector khud select hota hai ("Fits my …"); charging speed (22+/50+/120+ kW); max price (Rs/kWh) |
+| **Availability and Status Filter** | "Available now" (koi matching charger free ho), "Open now" (Pakistan time), station status: Operational / Maintenance / Offline |
+| **Rating and Facilities Filter** | Min rating (3+/4+/4.5+), facilities (Wi-Fi, Café, Restroom, Parking, Lounge, Prayer area, …) — saari selected facilities honi chahiye |
+| **Sort Options** | Nearest, Cheapest, Top rated, Fastest, Most available |
+| **Search Results Map View** | "List + Map" view: left list, right map; card click → map pe fly + popup |
+| **Map View** | Full map view; pins ka rang availability batata hai (green free, amber busy, grey closed, red unavailable), pin pe free chargers ki ginti |
+
+Station details drawer: chargers table (bay, connector, kW, Rs/kWh, status), opening hours, facilities, rating,
+"Get directions" (Google Maps). "Book a slot" Booking & Queue module mein aayega.
+
+**Map:** Leaflet + OpenStreetMap (CARTO dark tiles) — **koi API key nahi chahiye**, free hai.
+
+**Demo data:** backend pehli dafa start hone pe 27 sample stations bana deta hai (Islamabad, Rawalpindi, Lahore,
+Karachi, M-2 Bhera) — naam fictional hain. Owner Management module aane ke baad owners khud stations add karenge.
+Seed band karne ke liye: `app.seed.stations: false`.
+
+### API
+| Method | Path | |
+|---|---|---|
+| GET | `/api/stations` | search — sab params optional (neeche) |
+| GET | `/api/stations/{id}?lat=&lng=` | details + chargers |
+| GET | `/api/stations/filters` | cities, categories, connectors, facilities, statuses, sort options |
+
+Search params: `q`, `lat`, `lng`, `radiusKm` (default 25), `city`, `category` (PUBLIC/BUSINESS/HOME),
+`connectors=CCS2,TYPE2`, `minPowerKw`, `maxPrice`, `availableOnly`, `statuses=OPERATIONAL,MAINTENANCE`,
+`openNow`, `minRating`, `facilities=WIFI,CAFE`, `sort` (DISTANCE/PRICE/RATING/POWER/AVAILABILITY), `limit`.
+
+Example: `/api/stations?lat=33.7086&lng=73.0551&radiusKm=10&connectors=CCS2&availableOnly=true&sort=PRICE`
+
+Distance Haversine formula se nikalta hai; pehle DB mein bounding-box filter lagta hai (`idx_station_lat_lng` index).
+Agar connector filter laga ho to price/power/free-count sirf un chargers se nikalte hain jo match karte hain.
+
+### Tables
+`stations` (name, category, address, city, latitude, longitude, status, hours, rating, owner) ·
+`chargers` (station, connector, power kW, price/kWh, status) · `station_facilities`
+
+---
+
 ## Windows pe chalana (VS Code)
 
 ### 1. Database banao (pgAdmin 4 ya psql)
@@ -108,7 +153,7 @@ cd backend
 .\mvnw.cmd test
 ```
 Integration tests in-memory H2 DB pe chalte hain (PostgreSQL ki zaroorat nahi): signup → verify → login →
-vehicles → MFA → password reset → lockout → role access.
+vehicles → MFA → password reset → lockout → role access; aur station search ke saare filters/sorts (`StationSearchIntegrationTest`).
 
 ---
 
@@ -170,6 +215,8 @@ Errors hamesha is shape mein aate hain:
 ```
 
 ## Next modules
-Station Discovery (Saif) aur Compatibility Engine (Haider) is module ke `User`, `Role`, `Vehicle.connectorType`
-aur JWT security ko reuse karenge — naya controller `/api/...` ke under banao, `@AuthenticationPrincipal AuthUser me`
-se current user mil jayega.
+- **Compatibility Engine (Haider):** `Charger.connectorType` vs `Vehicle.connectorType` — `StationService.search`
+  ka `connectors` filter already matching chargers nikalta hai; compatible/incompatible badge aur pre-booking warning wahan add karo.
+- **Cost Calculator:** `Charger.pricePerKwh` + `Vehicle.batteryCapacityKwh` / `currentBatteryPercent`.
+- **Owner Management:** `Station.owner` (User, STATION_OWNER) already hai — owners ke liye create/edit API banao.
+- Naya controller `/api/...` ke under banao; `@AuthenticationPrincipal AuthUser me` se current user mil jayega.

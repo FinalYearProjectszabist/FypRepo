@@ -103,10 +103,10 @@ export default function DashboardPage() {
           </span>
           {!user.mfaEnabled && ' — turn it on for extra protection.'}
         </Tile>
-        <Tile icon={isDriver ? ICONS.map : ICONS.plug} title="Coming next" delay={0.15}>
+        <Tile icon={ICONS.map} title="Find chargers" to="/stations" cta="Open map" delay={0.15}>
           {isDriver
-            ? 'Station Discovery, Compatibility Engine and Cost Calculator will appear here.'
-            : 'Owner Management and Charger Marketplace will appear here.'}
+            ? 'Search nearby stations by connector, price, rating and facilities — see who is free right now.'
+            : 'See how stations near you are listed, priced and rated.'}
         </Tile>
       </div>
     </div>

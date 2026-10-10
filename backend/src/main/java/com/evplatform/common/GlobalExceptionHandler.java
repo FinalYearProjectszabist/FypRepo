@@ -26,7 +26,8 @@ public class GlobalExceptionHandler {
     ResponseEntity<ApiError> handleValidation(MethodArgumentNotValidException e) {
         Map<String, String> fields = new LinkedHashMap<>();
         e.getBindingResult().getFieldErrors()
-                .forEach(fe -> fields.putIfAbsent(fe.getField(), fe.getDefaultMessage()));
+                .forEach(fe -> fields.putIfAbsent(fe.getField(),
+                        fe.isBindingFailure() ? "Invalid value '" + fe.getRejectedValue() + "'" : fe.getDefaultMessage()));
         e.getBindingResult().getGlobalErrors()
                 .forEach(ge -> fields.putIfAbsent(ge.getObjectName(), ge.getDefaultMessage()));
         return ResponseEntity.badRequest()

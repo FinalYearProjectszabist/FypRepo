@@ -7,6 +7,7 @@ import AdminUsersPage from './pages/app/AdminUsersPage';
 import DashboardPage from './pages/app/DashboardPage';
 import ProfilePage from './pages/app/ProfilePage';
 import SecurityPage from './pages/app/SecurityPage';
+import StationsPage from './pages/app/StationsPage';
 import VehiclesPage from './pages/app/VehiclesPage';
 import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
 import LoginPage from './pages/auth/LoginPage';
@@ -21,7 +22,7 @@ function Home() {
   return <Navigate to={user ? HOME_BY_ROLE[user.role] : '/login'} replace />;
 }
 
-const APP_PATHS = ['/dashboard', '/vehicles', '/admin', '/profile', '/security'];
+const APP_PATHS = ['/dashboard', '/stations', '/vehicles', '/admin', '/profile', '/security'];
 
 export default function App() {
   const { pathname } = useLocation();
@@ -44,6 +45,7 @@ export default function App() {
         {/* Signed-in area */}
         <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
           <Route path="/dashboard" element={<ProtectedRoute roles={['DRIVER', 'STATION_OWNER']}><DashboardPage /></ProtectedRoute>} />
+          <Route path="/stations" element={<StationsPage />} />
           <Route path="/vehicles" element={<ProtectedRoute roles={['DRIVER']}><VehiclesPage /></ProtectedRoute>} />
           <Route path="/admin/users" element={<ProtectedRoute roles={['ADMIN']}><AdminUsersPage /></ProtectedRoute>} />
           <Route path="/profile" element={<ProfilePage />} />

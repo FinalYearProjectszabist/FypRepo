@@ -33,3 +33,23 @@ export const adminApi = {
   users: () => api.get('/admin/users').then((r) => r.data),
   setEnabled: (id, value) => api.patch(`/admin/users/${id}/enabled`, null, { params: { value } }).then((r) => r.data),
 };
+
+/** Arrays → comma separated, empty values dropped (backend binds "CCS2,TYPE2" to a list). */
+function toQuery(params) {
+  const out = {};
+  Object.entries(params).forEach(([k, v]) => {
+    if (v === null || v === undefined || v === '' || v === false) return;
+    if (Array.isArray(v)) {
+      if (v.length) out[k] = v.join(',');
+    } else {
+      out[k] = v;
+    }
+  });
+  return out;
+}
+
+export const stationApi = {
+  search: (params, signal) => api.get('/stations', { params: toQuery(params), signal }).then((r) => r.data),
+  get: (id, lat, lng) => api.get(`/stations/${id}`, { params: toQuery({ lat, lng }) }).then((r) => r.data),
+  filters: () => api.get('/stations/filters').then((r) => r.data),
+};
