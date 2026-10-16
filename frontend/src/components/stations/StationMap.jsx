@@ -4,8 +4,9 @@ import { useEffect, useMemo, useRef } from 'react';
 import { Circle, MapContainer, Marker, Popup, TileLayer, useMap } from 'react-leaflet';
 import { AVAILABILITY, distanceLabel, formatPkr, PAKISTAN_CENTER } from '../../utils/stations';
 
-const TILE_URL = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
-const TILE_ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>';
+// Standard OpenStreetMap tiles, darkened with the .map-tiles-dark CSS filter to match the theme.
+const TILE_URL = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+const TILE_ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
 
 /** Pin coloured by availability, showing the number of free chargers. */
 function stationIcon(s, selected) {
@@ -78,7 +79,7 @@ export default function StationMap({ stations, center, radiusKm, selected, onSel
     <div className={`relative isolate overflow-hidden rounded-2xl border border-white/10 ${className}`}>
       <MapContainer center={center || PAKISTAN_CENTER} zoom={center ? 12 : 6} className="h-full w-full" zoomControl={false}
         scrollWheelZoom worldCopyJump>
-        <TileLayer url={TILE_URL} attribution={TILE_ATTRIBUTION} subdomains="abcd" maxZoom={19} />
+        <TileLayer url={TILE_URL} attribution={TILE_ATTRIBUTION} subdomains="abc" maxZoom={19} className="map-tiles-dark" />
         <InvalidateOnResize />
         <FitToResults stations={stations} center={center} radiusKm={radiusKm} />
         <FlyToSelected selected={selected} markers={markers} />
