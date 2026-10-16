@@ -45,8 +45,7 @@ function Toggle({ checked, onChange, label, hint }) {
 
 const toggleIn = (list, v) => (list.includes(v) ? list.filter((x) => x !== v) : [...list, v]);
 
-export default function FiltersPanel({ filters, set, vehicle, onReset }) {
-  const usingVehicle = vehicle && filters.connectors.length === 1 && filters.connectors[0] === vehicle.connectorType;
+export default function FiltersPanel({ filters, set, vehicles, vehicleId, setVehicleId, onReset }) {
   return (
     <div className="card p-5">
       <div className="mb-4 flex items-center justify-between">
@@ -54,21 +53,26 @@ export default function FiltersPanel({ filters, set, vehicle, onReset }) {
         <button type="button" onClick={onReset} className="text-xs font-medium text-slate-400 hover:text-white">Reset all</button>
       </div>
 
+      {vehicles.length > 0 && (
+        <Section title="Compatibility">
+          <label className="label text-xs" htmlFor="vehicleSelect">Charging for</label>
+          <select id="vehicleSelect" className="input py-2" value={vehicleId ?? ''}
+            onChange={(e) => setVehicleId(e.target.value ? Number(e.target.value) : null)}>
+            <option value="">No vehicle (show everything)</option>
+            {vehicles.map((v) => (
+              <option key={v.id} value={v.id}>{v.make} {v.model} · {v.compatibleConnectors.join(' / ')}</option>
+            ))}
+          </select>
+          {vehicleId && (
+            <div className="mt-3">
+              <Toggle label="Hide incompatible stations" hint="Only show chargers that fit your car"
+                checked={filters.hideIncompatible} onChange={(v) => set({ hideIncompatible: v })} />
+            </div>
+          )}
+        </Section>
+      )}
+
       <Section title="Connector">
-        {vehicle && (
-          <button
-            type="button"
-            onClick={() => set({ connectors: usingVehicle ? [] : [vehicle.connectorType] })}
-            className={`mb-2.5 flex w-full items-center gap-2 rounded-xl border px-3 py-2 text-left text-xs transition ${
-              usingVehicle ? 'border-brand-400/50 bg-brand-500/10 text-brand-200' : 'border-white/10 bg-white/5 text-slate-300 hover:border-white/20'
-            }`}
-          >
-            <span className={`grid h-4 w-4 place-items-center rounded border ${usingVehicle ? 'border-brand-400 bg-brand-500 text-ink-950' : 'border-white/30'}`}>
-              {usingVehicle && '✓'}
-            </span>
-            Fits my {vehicle.make} {vehicle.model} ({vehicle.connectorType})
-          </button>
-        )}
         <div className="flex flex-wrap gap-2">
           {CONNECTORS.map((c) => (
             <Chip key={c.value} active={filters.connectors.includes(c.value)}

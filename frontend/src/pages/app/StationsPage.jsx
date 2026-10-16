@@ -25,6 +25,7 @@ const DEFAULT_FILTERS = {
   facilities: [],
   sort: 'DISTANCE',
   radiusKm: 25,
+  hideIncompatible: true,
 };
 
 const VIEWS = [
@@ -60,7 +61,8 @@ export default function StationsPage() {
   const [area, setArea] = useState('Islamabad');
   const [gps, setGps] = useState(null); // [lat, lng]
   const [locating, setLocating] = useState(false);
-  const [vehicle, setVehicle] = useState(null);
+  const [vehicles, setVehicles] = useState([]);
+  const [vehicleId, setVehicleId] = useState(null);
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -80,17 +82,15 @@ export default function StationsPage() {
   }, [area, gps]);
   const hasRadius = !!center;
 
-  // Drivers: pre-select the primary vehicle's connector so only compatible chargers show.
+  // Drivers: the Compatibility Engine uses the primary vehicle by default.
   useEffect(() => {
     if (user.role !== 'DRIVER') return;
     vehicleApi.list().then((list) => {
+      setVehicles(list);
       const primary = list.find((v) => v.primaryVehicle);
-      if (primary) {
-        setVehicle(primary);
-        set({ connectors: [primary.connectorType] });
-      }
+      if (primary) setVehicleId(primary.id);
     }).catch(() => {});
-  }, [user.role, set]);
+  }, [user.role]);
 
   // Ask for the device location once; fall back to Islamabad.
   const locate = useCallback(() => {
@@ -150,6 +150,8 @@ export default function StationsPage() {
         minRating: filters.minRating || undefined,
         facilities: filters.facilities,
         sort: !hasRadius && filters.sort === 'DISTANCE' ? 'RATING' : filters.sort,
+        vehicleId,
+        hideIncompatible: vehicleId ? String(filters.hideIncompatible) : undefined,
       }, controller.signal)
         .then((res) => {
           setData(res);
@@ -166,7 +168,7 @@ export default function StationsPage() {
       clearTimeout(t);
       controller.abort();
     };
-  }, [filters, center, hasRadius]);
+  }, [filters, center, hasRadius, vehicleId]);
 
   const results = useMemo(() => data?.results || [], [data]);
 
@@ -180,6 +182,7 @@ export default function StationsPage() {
 
   const reset = () => {
     setFilters({ ...DEFAULT_FILTERS, q: filters.q });
+    setVehicleId(vehicles.find((v) => v.primaryVehicle)?.id ?? null);
   };
 
   const sortOptions = hasRadius ? SORTS : SORTS.filter((s) => s.value !== 'DISTANCE');
@@ -298,6 +301,9 @@ export default function StationsPage() {
         <span>
           {data ? <><b className="text-white">{data.total}</b> {data.total === 1 ? 'station' : 'stations'} found</> : 'Searching…'}
           {data && hasRadius && <> within {filters.radiusKm} km of {area === 'near' ? 'you' : area}</>}
+          {data?.vehicle && (
+            <> · {filters.hideIncompatible ? 'compatible with' : 'checked for'} <b className="text-brand-300">{data.vehicle.name}</b></>
+          )}
         </span>
         {loading && data && <Spinner className="h-4 w-4 text-brand-400" />}
       </div>
@@ -305,7 +311,7 @@ export default function StationsPage() {
       <div className="grid gap-5 lg:grid-cols-[18rem_1fr]">
         <aside className="hidden lg:block">
           <div className="sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto pr-1">
-            <FiltersPanel filters={filters} set={set} vehicle={vehicle} onReset={reset} />
+            <FiltersPanel filters={filters} set={set} vehicles={vehicles} vehicleId={vehicleId} setVehicleId={setVehicleId} onReset={reset} />
           </div>
         </aside>
 
@@ -332,7 +338,7 @@ export default function StationsPage() {
             <motion.div className="fixed inset-x-0 bottom-0 z-[1001] max-h-[85vh] overflow-y-auto rounded-t-3xl border-t border-white/10 bg-ink-900 p-4 lg:hidden"
               initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} transition={{ type: 'spring', stiffness: 320, damping: 34 }}>
               <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-white/20" />
-              <FiltersPanel filters={filters} set={set} vehicle={vehicle} onReset={reset} />
+              <FiltersPanel filters={filters} set={set} vehicles={vehicles} vehicleId={vehicleId} setVehicleId={setVehicleId} onReset={reset} />
               <button className="btn-primary mt-4 w-full" onClick={() => setShowFilters(false)}>
                 Show {data?.total ?? ''} results
               </button>
@@ -341,7 +347,7 @@ export default function StationsPage() {
         )}
       </AnimatePresence>, document.body)}
 
-      <StationDetailDrawer stationId={detailId} origin={center} onClose={() => setDetailId(null)} />
+      <StationDetailDrawer stationId={detailId} origin={center} vehicleId={vehicleId} onClose={() => setDetailId(null)} />
     </div>
   );
 }

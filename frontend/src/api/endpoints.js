@@ -50,6 +50,12 @@ function toQuery(params) {
 
 export const stationApi = {
   search: (params, signal) => api.get('/stations', { params: toQuery(params), signal }).then((r) => r.data),
-  get: (id, lat, lng) => api.get(`/stations/${id}`, { params: toQuery({ lat, lng }) }).then((r) => r.data),
+  get: (id, lat, lng, vehicleId) => api.get(`/stations/${id}`, { params: toQuery({ lat, lng, vehicleId }) }).then((r) => r.data),
   filters: () => api.get('/stations/filters').then((r) => r.data),
+};
+
+/** Module 3 — Compatibility Engine (drivers only). */
+export const compatibilityApi = {
+  vehicle: (vehicleId) => api.get(`/compatibility/vehicles/${vehicleId}`).then((r) => r.data),
+  preBookingCheck: (body) => api.post('/compatibility/pre-booking-check', body).then((r) => r.data),
 };

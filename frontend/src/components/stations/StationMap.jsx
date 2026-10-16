@@ -18,7 +18,7 @@ function stationIcon(s, selected) {
     iconAnchor: [size / 2, size],
     popupAnchor: [0, -size + 4],
     html: `
-      <div class="ev-pin ${selected ? 'ev-pin--selected' : ''}" style="--pin:${color};width:${size}px;height:${size}px">
+      <div class="ev-pin ${selected ? 'ev-pin--selected' : ''} ${s.compatibility === 'INCOMPATIBLE' ? 'ev-pin--incompatible' : ''}" style="--pin:${color};width:${size}px;height:${size}px">
         <svg viewBox="0 0 24 24"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg>
         <span>${s.availableChargers}</span>
       </div>`,
@@ -105,6 +105,11 @@ export default function StationMap({ stations, center, radiusKm, selected, onSel
                   {AVAILABILITY[s.availability].label} · {s.availableChargers}/{s.totalChargers} free
                 </p>
                 <p className="mt-1 font-semibold text-white">{s.name}</p>
+                {s.compatibility && (
+                  <p className={`mt-1 text-[11px] font-semibold ${s.compatibility === 'COMPATIBLE' ? 'text-emerald-300' : s.compatibility === 'PARTIAL' ? 'text-amber-300' : 'text-red-300'}`}>
+                    {s.compatibility === 'COMPATIBLE' ? '✓ Fits your car' : s.compatibility === 'PARTIAL' ? '! Some chargers fit' : "✕ Doesn't fit your car"}
+                  </p>
+                )}
                 <p className="text-xs text-slate-400">{s.address}</p>
                 <p className="mt-2 text-xs text-slate-300">
                   ★ {Number(s.rating).toFixed(1)} · {Number(s.maxPowerKw)} kW · {formatPkr(s.minPricePerKwh)}/kWh

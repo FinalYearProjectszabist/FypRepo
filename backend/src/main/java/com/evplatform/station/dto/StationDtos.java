@@ -1,5 +1,8 @@
 package com.evplatform.station.dto;
 
+import com.evplatform.compatibility.ChargerMatch;
+import com.evplatform.compatibility.CompatibilityLevel;
+import com.evplatform.compatibility.CompatibilityRules;
 import com.evplatform.station.Availability;
 import com.evplatform.station.Charger;
 import com.evplatform.station.ChargerStatus;
@@ -8,6 +11,7 @@ import com.evplatform.station.SortOption;
 import com.evplatform.station.StationCategory;
 import com.evplatform.station.StationStatus;
 import com.evplatform.vehicle.ConnectorType;
+import com.evplatform.vehicle.Vehicle;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Max;
@@ -62,6 +66,11 @@ public final class StationDtos {
 
             SortOption sort,
 
+            /** Compatibility Engine: one of the signed-in driver's vehicles. */
+            Long vehicleId,
+            /** With vehicleId: drop stations where nothing fits (default true). */
+            Boolean hideIncompatible,
+
             @Min(value = 1, message = "Limit must be 1-200") @Max(value = 200, message = "Limit must be 1-200")
             Integer limit) {}
 
@@ -88,17 +97,41 @@ public final class StationDtos {
             boolean open24Hours,
             LocalTime opensAt,
             LocalTime closesAt,
-            boolean openNow) {}
+            boolean openNow,
+            /** null when no vehicle was selected. */
+            CompatibilityLevel compatibility,
+            /** Chargers at the station that fit the car (null without a vehicle). */
+            Integer compatibleChargers,
+            /** Fastest speed the selected car can actually charge at here (null without a vehicle). */
+            BigDecimal effectiveMaxPowerKw) {}
 
     public record ChargerResponse(Long id, String label, ConnectorType connectorType, BigDecimal powerKw,
-                                  BigDecimal pricePerKwh, ChargerStatus status) {
+                                  BigDecimal pricePerKwh, ChargerStatus status,
+                                  /* Compatibility Engine fields — null without a vehicle */
+                                  Boolean compatible, ChargerMatch.MatchType matchType, BigDecimal effectivePowerKw,
+                                  String compatibilityNote) {
         public static ChargerResponse from(Charger c) {
             return new ChargerResponse(c.getId(), c.getLabel(), c.getConnectorType(), c.getPowerKw(),
-                    c.getPricePerKwh(), c.getStatus());
+                    c.getPricePerKwh(), c.getStatus(), null, null, null, null);
+        }
+
+        public static ChargerResponse from(Charger c, ChargerMatch m) {
+            return new ChargerResponse(c.getId(), c.getLabel(), c.getConnectorType(), c.getPowerKw(),
+                    c.getPricePerKwh(), c.getStatus(), m.compatible(), m.via(), m.effectivePowerKw(), m.note());
         }
     }
 
-    public record StationDetail(StationSummary summary, String description, List<ChargerResponse> chargers) {}
+    /** The vehicle the results were computed for. */
+    public record VehicleBrief(Long id, String name, ConnectorType connectorType,
+                               Set<ConnectorType> compatibleConnectors) {
+        public static VehicleBrief from(Vehicle v) {
+            return v == null ? null : new VehicleBrief(v.getId(), v.getMake() + " " + v.getModel(),
+                    v.getConnectorType(), CompatibilityRules.acceptedConnectors(v));
+        }
+    }
+
+    public record StationDetail(StationSummary summary, String description, List<ChargerResponse> chargers,
+                                VehicleBrief vehicle) {}
 
     public record SearchResponse(
             List<StationSummary> results,
@@ -107,7 +140,8 @@ public final class StationDtos {
             Double lat,
             Double lng,
             Double radiusKm,
-            SortOption sort) {}
+            SortOption sort,
+            VehicleBrief vehicle) {}
 
     /** Values for the filter UI. */
     public record FilterOptions(

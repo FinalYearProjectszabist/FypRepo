@@ -16,15 +16,18 @@ const CONNECTORS = [
 
 // Quick-fill presets for EVs common in Pakistan (values are approximate).
 const PRESETS = [
-  { make: 'BYD', model: 'Atto 3', batteryCapacityKwh: '60.48', connectorType: 'CCS2', rangeKm: '420' },
-  { make: 'MG', model: 'ZS EV', batteryCapacityKwh: '51', connectorType: 'CCS2', rangeKm: '320' },
-  { make: 'Hyundai', model: 'Ioniq 5', batteryCapacityKwh: '72.6', connectorType: 'CCS2', rangeKm: '480' },
-  { make: 'Nissan', model: 'Leaf', batteryCapacityKwh: '40', connectorType: 'CHADEMO', rangeKm: '270' },
-  { make: 'Honeta', model: 'Seagull', batteryCapacityKwh: '30.08', connectorType: 'TYPE2', rangeKm: '305' },
+  { make: 'BYD', model: 'Atto 3', batteryCapacityKwh: '60.48', connectorType: 'CCS2', additionalConnectors: [], maxAcPowerKw: '7', maxDcPowerKw: '88', rangeKm: '420' },
+  { make: 'MG', model: 'ZS EV', batteryCapacityKwh: '51', connectorType: 'CCS2', additionalConnectors: [], maxAcPowerKw: '7', maxDcPowerKw: '76', rangeKm: '320' },
+  { make: 'Hyundai', model: 'Ioniq 5', batteryCapacityKwh: '72.6', connectorType: 'CCS2', additionalConnectors: [], maxAcPowerKw: '11', maxDcPowerKw: '220', rangeKm: '480' },
+  { make: 'Nissan', model: 'Leaf', batteryCapacityKwh: '40', connectorType: 'CHADEMO', additionalConnectors: ['TYPE2'], maxAcPowerKw: '6.6', maxDcPowerKw: '50', rangeKm: '270' },
+  { make: 'Honeta', model: 'Seagull', batteryCapacityKwh: '30.08', connectorType: 'TYPE2', additionalConnectors: [], maxAcPowerKw: '6.6', maxDcPowerKw: '', rangeKm: '305' },
 ];
+
+const CONNECTOR_SHORT = { CCS2: 'CCS2', CHADEMO: 'CHAdeMO', TYPE2: 'Type 2' };
 
 const EMPTY = {
   make: '', model: '', year: String(new Date().getFullYear()), batteryCapacityKwh: '', connectorType: 'CCS2',
+  additionalConnectors: [], maxAcPowerKw: '', maxDcPowerKw: '',
   rangeKm: '', currentBatteryPercent: '80', licensePlate: '', primaryVehicle: false,
 };
 
@@ -37,6 +40,8 @@ const schema = {
   rangeKm: rules.rangeKm,
   currentBatteryPercent: rules.currentBatteryPercent,
   licensePlate: rules.licensePlate,
+  maxAcPowerKw: rules.maxAcPowerKw,
+  maxDcPowerKw: rules.maxDcPowerKw,
 };
 
 function VehicleForm({ initial, onSaved, onCancel }) {
@@ -56,6 +61,9 @@ function VehicleForm({ initial, onSaved, onCancel }) {
       rangeKm: +values.rangeKm,
       currentBatteryPercent: +values.currentBatteryPercent,
       licensePlate: values.licensePlate.trim() || null,
+      additionalConnectors: values.additionalConnectors.filter((c) => c !== values.connectorType),
+      maxAcPowerKw: values.maxAcPowerKw === '' ? null : +values.maxAcPowerKw,
+      maxDcPowerKw: values.maxDcPowerKw === '' ? null : +values.maxDcPowerKw,
     };
     try {
       onSaved(initial?.id ? await vehicleApi.update(initial.id, body) : await vehicleApi.create(body));
@@ -100,6 +108,33 @@ function VehicleForm({ initial, onSaved, onCancel }) {
             {CONNECTORS.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
           </select>
         </FormField>
+        <div className="sm:col-span-2">
+          <span className="label">Extra ports / adapters <span className="font-normal text-slate-500">(optional — multi-connector cars)</span></span>
+          <div className="flex flex-wrap gap-2">
+            {CONNECTORS.filter((c) => c.value !== values.connectorType).map((c) => {
+              const on = values.additionalConnectors.includes(c.value);
+              return (
+                <button type="button" key={c.value} aria-pressed={on}
+                  onClick={() => setValues((v) => ({
+                    ...v,
+                    additionalConnectors: on ? v.additionalConnectors.filter((x) => x !== c.value) : [...v.additionalConnectors, c.value],
+                  }))}
+                  className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition ${on ? 'border-brand-400/50 bg-brand-500/15 text-brand-200' : 'border-white/10 bg-white/5 text-slate-300 hover:border-white/20'}`}>
+                  {on ? '✓ ' : '+ '}{CONNECTOR_SHORT[c.value]}
+                </button>
+              );
+            })}
+          </div>
+          {values.connectorType === 'CCS2' && (
+            <p className="mt-1.5 text-xs text-slate-500">CCS2 cars can already use Type 2 AC chargers (the top half of the CCS2 inlet is Type 2).</p>
+          )}
+        </div>
+        <FormField label="Max AC charging (kW)" name="maxAcPowerKw" type="number" step="0.1" placeholder="e.g. 7"
+          hint="On-board charger limit — optional"
+          value={values.maxAcPowerKw} onChange={onChange} onBlur={onBlur} error={errors.maxAcPowerKw} />
+        <FormField label="Max DC fast charging (kW)" name="maxDcPowerKw" type="number" step="0.1" placeholder="e.g. 88"
+          hint="Leave empty if the car has no DC port"
+          value={values.maxDcPowerKw} onChange={onChange} onBlur={onBlur} error={errors.maxDcPowerKw} />
         <FormField label="Full-charge range (km)" name="rangeKm" type="number"
           value={values.rangeKm} onChange={onChange} onBlur={onBlur} error={errors.rangeKm} />
         <div>
@@ -154,6 +189,9 @@ export default function VehiclesPage() {
     id: v.id, make: v.make, model: v.model, year: String(v.year), batteryCapacityKwh: String(v.batteryCapacityKwh),
     connectorType: v.connectorType, rangeKm: String(v.rangeKm), currentBatteryPercent: String(v.currentBatteryPercent),
     licensePlate: v.licensePlate || '', primaryVehicle: v.primaryVehicle,
+    additionalConnectors: v.additionalConnectors || [],
+    maxAcPowerKw: v.maxAcPowerKw === null || v.maxAcPowerKw === undefined ? '' : String(v.maxAcPowerKw),
+    maxDcPowerKw: v.maxDcPowerKw === null || v.maxDcPowerKw === undefined ? '' : String(v.maxDcPowerKw),
   });
 
   return (
@@ -197,10 +235,31 @@ export default function VehiclesPage() {
                 )}
               </div>
               <dl className="grid grid-cols-3 gap-2 text-sm">
-                <div><dt className="text-xs text-slate-400">Connector</dt><dd className="font-medium">{v.connectorType}</dd></div>
+                <div><dt className="text-xs text-slate-400">Main port</dt><dd className="font-medium">{CONNECTOR_SHORT[v.connectorType]}</dd></div>
                 <div><dt className="text-xs text-slate-400">Battery</dt><dd className="font-medium">{v.batteryCapacityKwh} kWh</dd></div>
                 <div><dt className="text-xs text-slate-400">Range</dt><dd className="font-medium">{v.rangeKm} km</dd></div>
               </dl>
+              <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Compatible chargers</p>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {v.compatibleConnectors.map((c) => (
+                    <span key={c} className="rounded-md border border-emerald-400/20 bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-200">
+                      ✓ {CONNECTOR_SHORT[c]}
+                      {c === 'TYPE2' && v.connectorType !== 'TYPE2' && !v.additionalConnectors.includes('TYPE2') && <span className="text-emerald-400/70"> (via CCS2)</span>}
+                    </span>
+                  ))}
+                  {CONNECTORS.filter((c) => !v.compatibleConnectors.includes(c.value)).map((c) => (
+                    <span key={c.value} className="rounded-md border border-white/10 px-2 py-0.5 text-xs text-slate-500 line-through">{CONNECTOR_SHORT[c.value]}</span>
+                  ))}
+                </div>
+                {(v.maxAcPowerKw || v.maxDcPowerKw) && (
+                  <p className="mt-2 text-xs text-slate-400">
+                    {v.maxAcPowerKw && <>AC up to <b className="text-slate-200">{Number(v.maxAcPowerKw)} kW</b></>}
+                    {v.maxAcPowerKw && v.maxDcPowerKw && ' · '}
+                    {v.maxDcPowerKw && <>DC up to <b className="text-slate-200">{Number(v.maxDcPowerKw)} kW</b></>}
+                  </p>
+                )}
+              </div>
               <div>
                 <div className="mb-1 flex justify-between text-xs text-slate-400">
                   <span>{v.currentBatteryPercent}% charged</span><span>~{v.estimatedRangeLeftKm} km left</span>

@@ -4,7 +4,9 @@ import com.evplatform.station.dto.StationDtos.FilterOptions;
 import com.evplatform.station.dto.StationDtos.SearchParams;
 import com.evplatform.station.dto.StationDtos.SearchResponse;
 import com.evplatform.station.dto.StationDtos.StationDetail;
+import com.evplatform.security.AuthUser;
 import jakarta.validation.Valid;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -28,8 +30,8 @@ public class StationController {
      * &availableOnly=true&minRating=4&facilities=WIFI,CAFE&sort=PRICE
      */
     @GetMapping
-    public SearchResponse search(@Valid @ModelAttribute SearchParams params) {
-        return stationService.search(params);
+    public SearchResponse search(@AuthenticationPrincipal AuthUser me, @Valid @ModelAttribute SearchParams params) {
+        return stationService.search(params, me.id());
     }
 
     @GetMapping("/filters")
@@ -38,9 +40,10 @@ public class StationController {
     }
 
     @GetMapping("/{id}")
-    public StationDetail get(@PathVariable Long id,
+    public StationDetail get(@AuthenticationPrincipal AuthUser me, @PathVariable Long id,
                              @RequestParam(required = false) Double lat,
-                             @RequestParam(required = false) Double lng) {
-        return stationService.get(id, lat, lng);
+                             @RequestParam(required = false) Double lng,
+                             @RequestParam(required = false) Long vehicleId) {
+        return stationService.get(id, lat, lng, vehicleId, me.id());
     }
 }

@@ -92,3 +92,22 @@ export function directionsUrl(s) {
 }
 
 export const formatPkr = (v) => `Rs ${Number(v).toLocaleString('en-PK', { maximumFractionDigits: 0 })}`;
+
+/** Compatibility Engine (Module 3) display styles. */
+export const COMPATIBILITY = {
+  COMPATIBLE: { label: 'Fits your car', icon: '✓', badge: 'bg-emerald-500/15 text-emerald-300 ring-emerald-400/25' },
+  PARTIAL: { label: 'Some chargers fit', icon: '!', badge: 'bg-amber-500/15 text-amber-300 ring-amber-400/25' },
+  INCOMPATIBLE: { label: "Doesn't fit your car", icon: '✕', badge: 'bg-red-500/15 text-red-300 ring-red-400/25' },
+};
+
+export const VERDICT = {
+  OK: { label: 'Good to book', cls: 'border-emerald-400/30 bg-emerald-500/10 text-emerald-200', icon: '✓' },
+  WARNING: { label: 'You can book — please check these', cls: 'border-amber-400/30 bg-amber-500/10 text-amber-200', icon: '!' },
+  BLOCKED: { label: "This charger can't be booked", cls: 'border-red-400/30 bg-red-500/10 text-red-200', icon: '✕' },
+};
+
+export const SEVERITY = {
+  INFO: { cls: 'text-sky-300', dot: 'bg-sky-400' },
+  WARNING: { cls: 'text-amber-300', dot: 'bg-amber-400' },
+  BLOCKER: { cls: 'text-red-300', dot: 'bg-red-400' },
+};

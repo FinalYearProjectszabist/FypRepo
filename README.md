@@ -102,6 +102,44 @@ Agar connector filter laga ho to price/power/free-count sirf un chargers se nika
 
 ---
 
+## Module 3 — Compatibility Engine ✅
+
+| Feature (proposal) | Kahan hai |
+|---|---|
+| **Vehicle Connector and Charger Type Match** | `compatibility/CompatibilityRules.java` — gaari ka main port + extra ports/adapters; **CCS2 inlet Type 2 AC plug bhi leta hai** (CCS2 ka upper hissa Type 2 hi hota hai); speed = min(charger kW, gaari ki AC/DC limit) |
+| **Compatible and Incompatible Display** | Station card/map popup pe badge: ✓ Fits your car / ! Some chargers fit / ✕ Doesn't fit; "Your car: up to 88 kW"; details mein har charger ke neeche wajah |
+| **Auto Filter Incompatible Stations** | Find Chargers → Filters → Compatibility: "Charging for" (primary vehicle default) + "Hide incompatible stations" (default ON). Off karo to incompatible stations dhundle (faded) dikhte hain |
+| **Multi Connector Support CCS2 CHAdeMO Type 2** | Vehicle form: "Extra ports / adapters" (e.g. Nissan Leaf = CHAdeMO + Type 2), max AC kW, max DC kW; vehicle card pe "Compatible chargers" list |
+| **Pre Booking Compatibility Warning** | Station details → charger chuno → **Check & book** → OK / WARNING / BLOCKED + reasons + recommended charger |
+
+### Pre-booking checks
+| Check | Severity |
+|---|---|
+| Connector fit nahi hota | BLOCKER (+ same station ka behtar charger suggest) |
+| Station maintenance / offline | BLOCKER |
+| Charger out of service | BLOCKER |
+| Charger abhi in use | WARNING (queue) |
+| Station abhi band hai | WARNING |
+| Battery range se zyada door (seedha distance × 1.3 road factor) | WARNING |
+| Slow AC (< 11 kW) — full hone ka andaza (ghante) | WARNING |
+| Gaari ki power limit charger se kam | INFO |
+
+Booking & Queue module booking banane se pehle yahi `POST /api/compatibility/pre-booking-check` call karega aur BLOCKED pe booking rok dega.
+
+### API
+| Method | Path | Auth |
+|---|---|---|
+| GET | `/api/compatibility/vehicles/{vehicleId}` — CCS2/CHAdeMO/Type 2 mein se kya chalega | DRIVER |
+| POST | `/api/compatibility/pre-booking-check` `{vehicleId, stationId, chargerId?, lat?, lng?}` | DRIVER |
+| GET | `/api/stations?vehicleId=..&hideIncompatible=true` — har result mein `compatibility`, `compatibleChargers`, `effectiveMaxPowerKw` | any |
+| GET | `/api/stations/{id}?vehicleId=..` — har charger mein `compatible`, `matchType`, `effectivePowerKw`, `compatibilityNote` | any |
+
+Doosre user ki vehicle id bhejo to `404` (ownership check).
+
+**Naye columns:** `vehicles.max_ac_power_kw`, `vehicles.max_dc_power_kw`, table `vehicle_extra_connectors` (Hibernate khud bana deta hai).
+
+---
+
 ## Windows pe chalana (VS Code)
 
 ### 1. Database banao (pgAdmin 4 ya psql)
@@ -153,7 +191,7 @@ cd backend
 .\mvnw.cmd test
 ```
 Integration tests in-memory H2 DB pe chalte hain (PostgreSQL ki zaroorat nahi): signup → verify → login →
-vehicles → MFA → password reset → lockout → role access; aur station search ke saare filters/sorts (`StationSearchIntegrationTest`).
+vehicles → MFA → password reset → lockout → role access; station search ke saare filters/sorts (`StationSearchIntegrationTest`), compatibility rules (`CompatibilityRulesTest`) aur auto-filter + pre-booking check (`CompatibilityIntegrationTest`).
 
 ---
 
@@ -215,8 +253,7 @@ Errors hamesha is shape mein aate hain:
 ```
 
 ## Next modules
-- **Compatibility Engine (Haider):** `Charger.connectorType` vs `Vehicle.connectorType` — `StationService.search`
-  ka `connectors` filter already matching chargers nikalta hai; compatible/incompatible badge aur pre-booking warning wahan add karo.
-- **Cost Calculator:** `Charger.pricePerKwh` + `Vehicle.batteryCapacityKwh` / `currentBatteryPercent`.
+- **Cost Calculator:** `Charger.pricePerKwh` + `Vehicle.batteryCapacityKwh` / `currentBatteryPercent`; speed ke liye `ChargerMatch.effectivePowerKw` use karo (gaari ki limit already lagi hui hai).
+- **Booking & Queue:** booking create karne se pehle `CompatibilityService.preBookingCheck(...)` call karo; `BLOCKED` pe reject.
 - **Owner Management:** `Station.owner` (User, STATION_OWNER) already hai — owners ke liye create/edit API banao.
 - Naya controller `/api/...` ke under banao; `@AuthenticationPrincipal AuthUser me` se current user mil jayega.

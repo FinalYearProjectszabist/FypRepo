@@ -5,7 +5,9 @@ import com.evplatform.user.UserRepository;
 import com.evplatform.vehicle.dto.VehicleDtos.VehicleRequest;
 import com.evplatform.vehicle.dto.VehicleDtos.VehicleResponse;
 import java.util.List;
+import java.util.EnumSet;
 import java.util.Locale;
+import java.util.Objects;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -90,6 +92,15 @@ public class VehicleService {
         v.setYear(req.year());
         v.setBatteryCapacityKwh(req.batteryCapacityKwh());
         v.setConnectorType(req.connectorType());
+        EnumSet<ConnectorType> extra = EnumSet.noneOf(ConnectorType.class);
+        if (req.additionalConnectors() != null) {
+            req.additionalConnectors().stream().filter(Objects::nonNull).forEach(extra::add);
+        }
+        extra.remove(req.connectorType());
+        v.getAdditionalConnectors().clear();
+        v.getAdditionalConnectors().addAll(extra);
+        v.setMaxAcPowerKw(req.maxAcPowerKw());
+        v.setMaxDcPowerKw(req.maxDcPowerKw());
         v.setRangeKm(req.rangeKm());
         v.setCurrentBatteryPercent(req.currentBatteryPercent());
         v.setLicensePlate(plate);

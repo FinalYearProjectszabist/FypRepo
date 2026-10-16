@@ -1,9 +1,11 @@
 import { motion } from 'framer-motion';
-import { AVAILABILITY, CATEGORY_LABEL, CONNECTOR_LABEL, distanceLabel, FACILITY_LABEL, formatPkr } from '../../utils/stations';
+import { AVAILABILITY, CATEGORY_LABEL, COMPATIBILITY, CONNECTOR_LABEL, distanceLabel, FACILITY_LABEL, formatPkr } from '../../utils/stations';
 import Stars from './Stars';
 
 export default function StationCard({ station: s, selected, onSelect, onDetails }) {
   const a = AVAILABILITY[s.availability];
+  const compat = s.compatibility ? COMPATIBILITY[s.compatibility] : null;
+  const incompatible = s.compatibility === 'INCOMPATIBLE';
   return (
     <motion.article
       layout="position"
@@ -12,7 +14,7 @@ export default function StationCard({ station: s, selected, onSelect, onDetails 
       onClick={() => onSelect(s)}
       className={`group cursor-pointer rounded-2xl border p-4 backdrop-blur-xl transition ${
         selected ? 'border-brand-400/50 bg-brand-500/10 shadow-glow' : 'border-white/10 bg-ink-900/60 hover:border-white/20 hover:bg-ink-900/80'
-      }`}
+      } ${incompatible ? 'opacity-55 saturate-50 hover:opacity-80' : ''}`}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
@@ -28,6 +30,14 @@ export default function StationCard({ station: s, selected, onSelect, onDetails 
           {a.label}
         </span>
       </div>
+
+      {compat && (
+        <div className={`mt-3 flex flex-wrap items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs ring-1 ring-inset ${compat.badge}`}>
+          <span className="font-semibold">{compat.icon} {compat.label}</span>
+          {s.compatibility === 'PARTIAL' && <span className="opacity-80">· {s.compatibleChargers} {s.compatibleChargers === 1 ? 'charger fits' : 'chargers fit'}</span>}
+          {s.effectiveMaxPowerKw && <span className="ml-auto opacity-90">Your car: up to <b>{Number(s.effectiveMaxPowerKw)} kW</b></span>}
+        </div>
+      )}
 
       <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm">
         <span className="flex items-center gap-1.5">

@@ -1,7 +1,9 @@
 package com.evplatform.vehicle;
 
 import com.evplatform.user.User;
+import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -16,6 +18,8 @@ import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.EnumSet;
+import java.util.Set;
 
 /**
  * A driver's EV. Battery capacity and connector type feed the Compatibility Engine (Module 3)
@@ -48,6 +52,24 @@ public class Vehicle {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private ConnectorType connectorType;
+
+    /**
+     * Extra ports or adapters the car can use besides its main connector
+     * (e.g. a Nissan Leaf has CHAdeMO for DC and Type 2 for AC). Used by the Compatibility Engine.
+     */
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "vehicle_extra_connectors", joinColumns = @JoinColumn(name = "vehicle_id"))
+    @Enumerated(EnumType.STRING)
+    @Column(name = "connector_type", length = 20)
+    private Set<ConnectorType> additionalConnectors = EnumSet.noneOf(ConnectorType.class);
+
+    /** Max power the on-board charger accepts on AC (kW). Null = unknown. */
+    @Column(precision = 5, scale = 1)
+    private BigDecimal maxAcPowerKw;
+
+    /** Max DC fast-charging power the car accepts (kW). Null = unknown. */
+    @Column(precision = 5, scale = 1)
+    private BigDecimal maxDcPowerKw;
 
     /** Full-charge range in km. */
     private int rangeKm;
@@ -94,6 +116,17 @@ public class Vehicle {
 
     public ConnectorType getConnectorType() { return connectorType; }
     public void setConnectorType(ConnectorType connectorType) { this.connectorType = connectorType; }
+
+    public Set<ConnectorType> getAdditionalConnectors() { return additionalConnectors; }
+    public void setAdditionalConnectors(Set<ConnectorType> additionalConnectors) {
+        this.additionalConnectors = additionalConnectors;
+    }
+
+    public BigDecimal getMaxAcPowerKw() { return maxAcPowerKw; }
+    public void setMaxAcPowerKw(BigDecimal maxAcPowerKw) { this.maxAcPowerKw = maxAcPowerKw; }
+
+    public BigDecimal getMaxDcPowerKw() { return maxDcPowerKw; }
+    public void setMaxDcPowerKw(BigDecimal maxDcPowerKw) { this.maxDcPowerKw = maxDcPowerKw; }
 
     public int getRangeKm() { return rangeKm; }
     public void setRangeKm(int rangeKm) { this.rangeKm = rangeKm; }

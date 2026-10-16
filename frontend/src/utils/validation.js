@@ -37,6 +37,8 @@ export const rules = {
   rangeKm: (v) => required(v) ? 'Range is required' : !Number.isInteger(+v) || +v < 50 || +v > 1200 ? 'Range must be 50-1200 km' : null,
   currentBatteryPercent: (v) => required(v) ? 'Battery level is required'
     : !Number.isInteger(+v) || +v < 0 || +v > 100 ? 'Battery level must be 0-100%' : null,
+  maxAcPowerKw: (v) => required(v) ? null : Number.isNaN(+v) || +v < 2 || +v > 50 ? 'Max AC power must be 2-50 kW' : null,
+  maxDcPowerKw: (v) => required(v) ? null : Number.isNaN(+v) || +v < 10 || +v > 400 ? 'Max DC power must be 10-400 kW' : null,
   licensePlate: (v) => required(v) ? null : !PATTERNS.plate.test(v.trim()) ? 'Registration number must look like ABC-123' : null,
 };
 
